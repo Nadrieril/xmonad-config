@@ -18,7 +18,7 @@ import Control.Monad (when)
 import System.IO (Handle, writeFile, readFile)
 -- import System.Posix.Types (ProcessID)
 
-import qualified XMonadXMobar.Property as XMProperty
+import qualified XMobar.Property as XMProperty
 ------------------------------------------------------
 
 data XMobarConfig = XMobarConfig {

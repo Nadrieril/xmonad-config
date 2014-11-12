@@ -1,4 +1,4 @@
-module XMonadXMobar.Property (Property(..), ptyTitle, ptyWorkspaces) where
+module XMobar.Property (Property(..), ptyTitle, ptyWorkspaces) where
 
 import XMonad
 
