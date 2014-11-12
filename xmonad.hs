@@ -6,7 +6,6 @@ import XMonad.Config.Gnome
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
 import XMonad.Layout.Tabbed
-import qualified XMonad.Layout.Fullscreen
 
 import Control.Monad (liftM2)
 import XMonad.Hooks.ManageHelpers
@@ -29,6 +28,7 @@ import Data.Monoid
 -- import XMonad.Actions.OnScreen
 
 import XMobar
+import DocksFullscreen
 
 import XMonad.Util.Run
 import XMonad.Actions.CycleWS
@@ -37,23 +37,24 @@ import XMonad.Prompt.Ssh
 
 main = do
     -- spawn "stalonetray -c /home/nadrieril/.xmonad/stalonetrayrc"
-    xmonad =<< customXMobar defaultXmConfig (gnomeConfig
+    conf <- customXMobar defaultXmConfig (gnomeConfig
         {
           modMask = mod4Mask
         , terminal = "gnome-terminal-wrapper"
         , workspaces = workspaces'
         , layoutHook = layoutHook'
-        , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> XMonad.Layout.Fullscreen.fullscreenManageHook <+> manageHook'
-        , handleEventHook = XMonad.Layout.Fullscreen.fullscreenEventHook
+        , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
+        , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         } `additionalKeysP` keys')
+    xmonad $ docksFullscreenConfig conf
 
 
 workspaces' = ["1:main","2:web","3:dev","4:term","5:chat","6:music"]
 
 
-layoutHook' = XMonad.Layout.Fullscreen.fullscreenFocus $
+layoutHook' =
         -- onWorkspaces ["3:dev", "4:term"] (tiled ||| Mirror tiled ||| accordion ||| full) $
         full ||| tiled
     where
