@@ -21,7 +21,9 @@ import qualified XMonad.Util.ExtensibleState as State
 
 import System.IO (Handle, writeFile, readFile)
 import System.Posix.Types (ProcessID)
------------------------------------------------
+
+import qualified XMonadXMobar.Property as XMProperty
+------------------------------------------------------
 
 data XMobarStorage = XMobarStorage (M.Map ScreenId XMobar) deriving Typeable
 instance ExtensionClass XMobarStorage where
@@ -29,55 +31,21 @@ instance ExtensionClass XMobarStorage where
 
 data XMobar = XMobar {
       xmPid :: ProcessID
-    , xmPipes :: M.Map XMobarParameter Handle
+    , xmPipes :: M.Map XMProperty.Property Handle
     }
-type Alias = String
-data XMobarParameter = XMobarParameter Alias (ScreenId -> X String)
+
 data XMobarConfig = XMobarConfig {
-      xmParameters :: [XMobarParameter]
+      xmProperties :: [XMProperty.Property]
     , xmConfigFile :: FilePath
     }
 
 
 defaultXmConfig = XMobarConfig
     { xmConfigFile = "/home/nadrieril/.xmonad/xmobarrc"
-    , xmParameters =
-        [ XMobarParameter "title" $ \id -> do
-            maybe_scr <- lookupScreen id
-            case maybe_scr >>= (S.stack . S.workspace) of
-                Nothing -> return ""
-                Just stk -> do
-                    let focus = S.focus stk
-                    namedwindow <- getName focus
-                    return $ ppTitle customSBPP $ show namedwindow
-        , XMobarParameter "workspaces" $ \id -> do
-            sort' <- ppSort customSBPP
-            winset <- gets windowset
-            urgents <- readUrgents
-            all_workspaces <- asks (workspaces . config)
-            let sepBy sep = intercalate sep . filter (not . null)
-            let visibles = map (S.tag . S.workspace) (S.visible winset)
-            let fmt w = wrapSwitch $ printer customSBPP (S.tag w)
-                 where printer | any (\x -> maybe False (== S.tag w) (S.findTag x winset)) urgents = ppUrgent
-                               | S.tag w == S.currentTag winset = ppCurrent
-                               | S.tag w `elem` visibles = ppVisible
-                               | isJust (S.stack w) = ppHidden
-                               | otherwise = ppHiddenNoWindows
-
-                       i = elemIndex (S.tag w) all_workspaces
-                       wrapSwitch s = case (s, i) of
-                            ("", _) -> ""
-                            (_, Nothing) -> s
-                            (s, Just i) -> "<action=`"++action++"`>"++s++"</action>"
-                                where action = "/home/nadrieril/.xmonad/send_xmonad_evt \"XMONAD_SWITCHWKSP\" "++show i
-            return $ sepBy (ppWsSep customSBPP) . map fmt . sort' $ S.workspaces winset
-        ]
+    , xmProperties =
+        [ XMProperty.ptyTitle customSBPP
+        , XMProperty.ptyWorkspaces customSBPP ]
     }
-
--- lookupScreen :: sid -> X (Maybe (S.Screen i l a sid sd))
-lookupScreen id = do
-    ws <- gets windowset
-    return $ find (\(S.Screen _ sid _) -> sid == id) (S.screens ws)
 
 customXMobar xmconf conf = return $ conf
         { layoutHook = avoidStruts (layoutHook conf)
@@ -103,11 +71,11 @@ customXMobar xmconf conf = return $ conf
         let dir = "/tmp/xmobar/"++i
         ws <- gets windowset
 
-        let writeParameterToPipe (XMobarParameter name f) = do
+        let writePropertyToPipe (XMProperty.Property name f) = do
             value <- f (S.screen scr)
             io $ writeNamedPipe (dir++"/"++name) value
 
-        foldr1 (>>) $ map writeParameterToPipe (xmParameters xmconf)
+        foldr1 (>>) $ map writePropertyToPipe (xmProperties xmconf)
 
 customSBPP = xmobarPP
     { ppCurrent = xmobarColor "#429942" "" . wrap "<" ">"

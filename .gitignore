@@ -1,10 +1,4 @@
 *.hi
 *.o
-/xmonad-x86-64-linux
-/xmonad.errors
-/dzen2
 /.conky_dzen
-/xmonad-x86_64-linux
-/history
-/stalonetrayrc
-/send_xmonad_evt
+/.xmonad
