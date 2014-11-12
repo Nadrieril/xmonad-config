@@ -1,0 +1,22 @@
+Config { font = "-misc-fixed-*-*-*-*-14-*-*-*-*-*-*-*"
+       , bgColor = "black"
+       , fgColor = "grey"
+       , overrideRedirect = False
+       , commands =
+          [ Run Cpu [ "-m","2",
+                      "--Low","15", "--High","50",
+                      "--normal","#00a0ff", "--high","red"
+                    ] 10
+          , Run Memory ["-t","Mem: <usedratio>%"] 30
+          , Run Swap [] 60
+          , Run Date "%a %b %_d %Y %H:%M" "date" 60
+          , Run Battery ["-t","Batt: <left>%/<timeleft>"] 120
+          , Run DiskU [("sdb2", "<free>/<size>")]
+               ["-H", "85"]
+               120
+          ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "%workspaces% } %focusedname% { | %cpu% | %memory% + %swap% | %disku% |\
+                    \ %battery% | <fc=#ee9a00>%date%</fc>"
+       }
