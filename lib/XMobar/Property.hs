@@ -9,6 +9,7 @@ import XMonad.Hooks.UrgencyHook (readUrgents)
 import Data.Maybe (isJust)
 import Data.List (intercalate, find, elemIndex)
 import Data.Map ((!))
+import qualified System.Posix.Files as Files
 
 import XMobar.XMobar (XMobar(..), Alias)
 ------------------------------------------------------
@@ -19,6 +20,19 @@ lookupScreen :: ScreenId -> X (Maybe (S.Screen WorkspaceId (Layout Window) Windo
 lookupScreen id = do
     ws <- gets windowset
     return $ find (\(S.Screen _ sid _) -> sid == id) (S.screens ws)
+
+
+initProperty :: XMobar -> Property -> X ()
+initProperty xmobar (Property alias _) = io $ Files.createNamedPipe (xmPipes xmobar ! alias) pipe_mode
+    where pipe_mode = Files.unionFileModes (Files.unionFileModes Files.namedPipeMode Files.ownerModes) (Files.unionFileModes Files.groupReadMode Files.otherReadMode)
+
+writeNamedPipe :: FilePath -> String -> IO ()
+writeNamedPipe p s = writeFile p (s++"\n")
+
+writeProperty :: XMobar -> Property -> X ()
+writeProperty xmobar (Property alias f) = do
+    value <- f (xmScreen xmobar)
+    io $ writeNamedPipe (xmPipes xmobar ! alias) value
 
 
 

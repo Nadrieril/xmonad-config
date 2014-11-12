@@ -19,6 +19,7 @@ import System.IO (Handle, writeFile, readFile)
 -- import System.Posix.Types (ProcessID)
 
 import qualified XMobar.Property as XMProperty
+import qualified XMobar.XMobar as XMobar
 ------------------------------------------------------
 
 data XMobarConfig = XMobarConfig {
@@ -89,8 +90,8 @@ spawnXMobar xmconf i = do
         io $ do
             killXMobar i
             System.Directory.createDirectoryIfMissing True dir
-            Files.createNamedPipe (dir++"/title") pipe_mode
-            Files.createNamedPipe (dir++"/workspaces") pipe_mode
+            let createPropertyPipe (XMProperty.Property alias _) = Files.createNamedPipe (dir++"/"++alias) pipe_mode
+            foldr1 (>>) $ map createPropertyPipe (xmProperties xmconf)
 
         xmonad_dir <- getXMonadDir
         spawn $ "xmobar "++xmConfigFile xmconf++" -x "++i++" -C \"["
