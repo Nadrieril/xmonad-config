@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module XMobar (customXMobar, defaultXmConfig) where
 
 import XMonad
@@ -16,23 +14,12 @@ import qualified System.Posix.Files as Files
 import qualified System.Posix.Signals as Signals
 import qualified System.Directory
 import Control.Monad (when)
-import qualified Data.Map as M
-import qualified XMonad.Util.ExtensibleState as State
 
 import System.IO (Handle, writeFile, readFile)
-import System.Posix.Types (ProcessID)
+-- import System.Posix.Types (ProcessID)
 
 import qualified XMonadXMobar.Property as XMProperty
 ------------------------------------------------------
-
-data XMobarStorage = XMobarStorage (M.Map ScreenId XMobar) deriving Typeable
-instance ExtensionClass XMobarStorage where
-    initialValue = XMobarStorage M.empty
-
-data XMobar = XMobar {
-      xmPid :: ProcessID
-    , xmPipes :: M.Map XMProperty.Property Handle
-    }
 
 data XMobarConfig = XMobarConfig {
       xmProperties :: [XMProperty.Property]
