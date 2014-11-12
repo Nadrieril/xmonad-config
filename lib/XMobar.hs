@@ -30,8 +30,8 @@ data XMobarConfig = XMobarConfig {
 defaultXmConfig = XMobarConfig
     { xmConfigFile = "/home/nadrieril/.xmonad/xmobarrc"
     , xmProperties =
-        [ XMProperty.ptyTitle customSBPP
-        , XMProperty.ptyWorkspaces customSBPP ]
+        [ XMProperty.ptyTitle "title" customSBPP
+        , XMProperty.ptyWorkspaces "workspaces" customSBPP ]
     }
 
 customXMobar xmconf conf = return $ conf

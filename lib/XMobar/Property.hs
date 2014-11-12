@@ -3,26 +3,28 @@ module XMobar.Property (Property(..), ptyTitle, ptyWorkspaces) where
 import XMonad
 
 import qualified XMonad.StackSet as S
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicLog (PP(..))
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Hooks.UrgencyHook (readUrgents)
-import Data.Maybe (isJust, fromJust)
+import Data.Maybe (isJust)
 import Data.List (intercalate, find, elemIndex)
-import System.IO (Handle, writeFile, readFile)
+import Data.Map ((!))
+
+import XMobar.XMobar (XMobar(..), Alias)
 ------------------------------------------------------
 
-
-type Alias = String
 data Property = Property Alias (ScreenId -> X String)
 
--- lookupScreen :: sid -> X (Maybe (S.Screen i l a sid sd))
+lookupScreen :: ScreenId -> X (Maybe (S.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail))
 lookupScreen id = do
     ws <- gets windowset
     return $ find (\(S.Screen _ sid _) -> sid == id) (S.screens ws)
 
 
-ptyTitle pp = Property "title" $ \id -> do
-    maybe_scr <- lookupScreen id
+
+ptyTitle :: Alias -> PP -> Property
+ptyTitle name pp = Property name $ \sid -> do
+    maybe_scr <- lookupScreen sid
     case maybe_scr >>= (S.stack . S.workspace) of
         Nothing -> return ""
         Just stk -> do
@@ -30,7 +32,8 @@ ptyTitle pp = Property "title" $ \id -> do
             namedwindow <- getName focus
             return $ ppTitle pp $ show namedwindow
 
-ptyWorkspaces pp = Property "workspaces" $ \id -> do
+ptyWorkspaces :: Alias -> PP -> Property
+ptyWorkspaces name pp = Property name $ \sid -> do
     sort' <- ppSort pp
     winset <- gets windowset
     urgents <- readUrgents
