@@ -7,7 +7,7 @@ import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
 import XMonad.Layout.Tabbed
 
-import Control.Monad (liftM2)
+import Control.Monad (liftM2, when)
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.WorkspaceByPos
 import XMonad.Hooks.DynamicLog
@@ -22,8 +22,8 @@ import Data.Maybe (fromJust, listToMaybe, maybeToList)
 import Data.List (delete, nub)
 import qualified XMonad.StackSet as S
 import qualified XMonad.Operations as O
+import qualified Data.Map
 import XMonad.Util.NamedWindows (getName)
-import Control.Monad (when)
 import Data.Monoid
 -- import XMonad.Actions.OnScreen
 
@@ -47,11 +47,12 @@ main = do
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
+        , mouseBindings = mouseBindings'
         } `additionalKeysP` keys')
     xmonad $ docksFullscreenConfig conf
 
 
-workspaces' = ["1:main","2:web","3:dev","4:term","5:chat","6:music"]
+workspaces' = ["1:main","2:web","3:dev","4:term"]
 
 
 layoutHook' =
@@ -101,3 +102,13 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
 
         , ("M-s", sshPrompt defaultXPConfig)
         , ("M-p", spawn "exe=$(yeganesh -x) && exec $exe")]
+
+        mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
+    [ ((modMask, button1), \w -> focus w >> mouseMoveWindow w)
+    , ((modMask, button2), windows . S.sink)
+    , ((modMask, button3), \w -> focus w >> mouseResizeWindow w)
+    , ((modMask, button4), const $ windows S.focusDown)
+    , ((modMask, button5), const $ windows S.focusUp)
+    , ((modMask, 8), const nextWS)
+    , ((modMask, 9), const prevWS)
+    ]
