@@ -35,7 +35,7 @@ defaultXmConfig = XMobarConfig
         , XMProperty.ptyWorkspaces "workspaces" customSBPP ]
     }
 
-customXMobar xmconf conf = return $ conf
+customXMobar xmconf conf = conf
         { layoutHook = avoidStruts (layoutHook conf)
         , logHook = do
                 logHook conf

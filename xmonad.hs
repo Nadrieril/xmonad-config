@@ -37,10 +37,11 @@ import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
 
-main = do
-    -- spawn "stalonetray -c /home/nadrieril/.xmonad/stalonetrayrc"
-    conf <- customXMobar defaultXmConfig (gnomeConfig
-        {
+main = xmonad
+    $ docksFullscreenConfig
+    $ scratchpadConfig
+    $ customXMobar defaultXmConfig
+    $ gnomeConfig {
           modMask = mod4Mask
         , terminal = "gnome-terminal-wrapper"
         , workspaces = workspaces'
@@ -50,8 +51,7 @@ main = do
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         , mouseBindings = mouseBindings'
-        } `additionalKeysP` keys')
-    xmonad $ docksFullscreenConfig $ scratchpadConfig conf
+        } `additionalKeysP` keys'
 
 
 workspaces' = ["main","web","dev"]
