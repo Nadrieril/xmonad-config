@@ -1,6 +1,6 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 
-module DocksFullscreen (docksFullscreenConfig) where
+module DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
 
 import XMonad
 
@@ -8,10 +8,9 @@ import qualified XMonad.Layout.Fullscreen as FS
 import qualified XMonad.StackSet as W (focus, stack)
 import Control.Monad (when)
 import XMonad.Hooks.ManageHelpers (isFullscreen)
-import XMonad.Hooks.ManageDocks (SetStruts(..), ToggleStruts(..), SetStruts(..), calcGap)
+import XMonad.Hooks.ManageDocks (SetStruts(..), ToggleStruts(..), calcGap)
 import XMonad.Layout.Gaps (Direction2D(..))
 import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
--- import Data.List (delete, nub)
 import qualified Data.Set as S
 
 
@@ -49,20 +48,3 @@ instance LayoutModifier AvoidStrutsUnlessFullscreen Window where
                         | otherwise = S.empty
             toggleOne x xs | x `S.member` xs = S.delete x xs
                            | otherwise   = x `S.insert` xs
-
-
--- fullscreenToggleStruts = ModifiedLayout $ FullscreenToggleStruts []
--- data FullscreenToggleStruts a = FullscreenToggleStruts [a]
---      deriving (Read, Show)
--- instance LayoutModifier FullscreenToggleStruts Window where
---     handleMess ff@(FullscreenToggleStruts fulls) m = case fromMessage m of
---         Just (FS.AddFullscreen win) -> setStruts $ nub $ win:fulls
---         Just (FS.RemoveFullscreen win) -> setStruts $ delete win fulls
---         Just FS.FullscreenChanged -> return $ Just ff
---         _ -> return Nothing
---         where setStruts f = do
---                 let m = if null f
---                         then SetStruts [minBound .. maxBound] []
---                         else SetStruts [] [minBound .. maxBound]
---                 sendMessage m
---                 return $ Just $ FullscreenToggleStruts f
