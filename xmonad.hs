@@ -2,6 +2,7 @@
 import XMonad
 import XMonad.Util.EZConfig
 import XMonad.Config.Gnome
+import XMonad.Config.Azerty (azertyKeys)
 
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
@@ -51,6 +52,7 @@ main = xmonad
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         , mouseBindings = mouseBindings'
+        , keys = azertyKeys <+> keys defaultConfig
         } `additionalKeysP` keys'
 
 
