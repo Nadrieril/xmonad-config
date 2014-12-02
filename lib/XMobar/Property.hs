@@ -1,4 +1,4 @@
-module XMobar.Property (Property(..), ptyTitle, ptyWorkspaces) where
+module XMobar.Property (Property, ptyTitle, ptyWorkspaces) where
 
 import XMonad
 
@@ -8,13 +8,9 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Hooks.UrgencyHook (readUrgents)
 import Data.Maybe (isJust)
 import Data.List (intercalate, find, elemIndex)
-import Data.Map ((!))
-import qualified System.Posix.Files as Files
-
-import XMobar.XMobar (XMobar(..), Alias)
 ------------------------------------------------------
+type Property = ScreenId -> X String
 
-data Property = Property Alias (ScreenId -> X String)
 
 lookupScreen :: ScreenId -> X (Maybe (S.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail))
 lookupScreen id = do
@@ -22,22 +18,8 @@ lookupScreen id = do
     return $ find (\(S.Screen _ sid _) -> sid == id) (S.screens ws)
 
 
-initProperty :: XMobar -> Property -> X ()
-initProperty xmobar (Property alias _) = io $ Files.createNamedPipe (xmPipes xmobar ! alias) pipe_mode
-    where pipe_mode = Files.unionFileModes (Files.unionFileModes Files.namedPipeMode Files.ownerModes) (Files.unionFileModes Files.groupReadMode Files.otherReadMode)
-
-writeNamedPipe :: FilePath -> String -> IO ()
-writeNamedPipe p s = writeFile p (s++"\n")
-
-writeProperty :: XMobar -> Property -> X ()
-writeProperty xmobar (Property alias f) = do
-    value <- f (xmScreen xmobar)
-    io $ writeNamedPipe (xmPipes xmobar ! alias) value
-
-
-
-ptyTitle :: Alias -> PP -> Property
-ptyTitle name pp = Property name $ \sid -> do
+ptyTitle :: PP -> Property
+ptyTitle pp sid = do
     maybe_scr <- lookupScreen sid
     case maybe_scr >>= (S.stack . S.workspace) of
         Nothing -> return ""
@@ -46,12 +28,14 @@ ptyTitle name pp = Property name $ \sid -> do
             namedwindow <- getName focus
             return $ ppTitle pp $ show namedwindow
 
-ptyWorkspaces :: Alias -> PP -> Property
-ptyWorkspaces name pp = Property name $ \sid -> do
+
+ptyWorkspaces :: PP -> Property
+ptyWorkspaces pp sid = do
     sort' <- ppSort pp
     winset <- gets windowset
     urgents <- readUrgents
     all_workspaces <- asks (workspaces . config)
+    xmonadDir <- getXMonadDir
     let sepBy sep = intercalate sep . filter (not . null)
     let visibles = map (S.tag . S.workspace) (S.visible winset)
     let fmt w = wrapSwitch $ printer pp (S.tag w)
@@ -66,5 +50,5 @@ ptyWorkspaces name pp = Property name $ \sid -> do
                     ("", _) -> ""
                     (_, Nothing) -> s
                     (s, Just i) -> "<action=`"++action++"`>"++s++"</action>"
-                        where action = "/home/nadrieril/.xmonad/send_xmonad_evt \"XMONAD_SWITCHWKSP\" "++show i
+                        where action = xmonadDir++"/send_xmonad_evt \"XMONAD_SWITCHWKSP\" "++show i
     return $ sepBy (ppWsSep pp) . map fmt . sort' $ S.workspaces winset

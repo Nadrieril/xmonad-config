@@ -17,6 +17,6 @@ Config { font = "-misc-fixed-*-*-*-*-14-*-*-*-*-*-*-*"
           ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%workspaces% } %focusedname% { | %cpu% | %memory% |\
+       , template = "%workspaces% } %title% { | %cpu% | %memory% |\
                     \ %battery% | <fc=#ee9a00>%date%</fc>"
        }

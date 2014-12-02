@@ -4,7 +4,7 @@ import XMonad
 
 import qualified XMonad.StackSet as S
 import XMonad.Hooks.ManageDocks (manageDocks, avoidStruts, docksEventHook)
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicLog (PP(..), xmobarPP, xmobarColor, wrap, shorten)
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Hooks.UrgencyHook (readUrgents)
 import Data.Maybe (isJust, fromJust)
@@ -13,38 +13,31 @@ import Data.List (intercalate, find, elemIndex)
 import qualified System.Posix.Files as Files
 import qualified System.Posix.Signals as Signals
 import qualified System.Directory
-import Control.Monad (when)
+import Control.Monad (when, forM_)
 
 import System.IO (Handle, writeFile, readFile)
 -- import System.Posix.Types (ProcessID)
 
 import qualified XMobar.Property as XMProperty
-import qualified XMobar.XMobar as XMobar
+import XMobar.XMobar
 ------------------------------------------------------
 
-data XMobarConfig = XMobarConfig {
-      xmProperties :: [XMProperty.Property]
-    , xmConfigFile :: FilePath
-    }
-
-
 defaultXmConfig = XMobarConfig
-    { xmConfigFile = "/home/nadrieril/.xmonad/xmobarrc"
-    , xmProperties =
-        [ XMProperty.ptyTitle "title" customSBPP
-        , XMProperty.ptyWorkspaces "workspaces" customSBPP ]
+    { xmProperties =
+        [ ("title", XMProperty.ptyTitle customSBPP)
+        , ("workspaces", XMProperty.ptyWorkspaces customSBPP) ]
     }
 
 customXMobar xmconf conf = conf
         { layoutHook = avoidStruts (layoutHook conf)
         , logHook = do
-                logHook conf
-                ws <- gets windowset
-                foldr1 (>>) $ map update_screen_focused_window_title (S.screens ws)
+            logHook conf
+            ws <- gets windowset
+            forM_ (S.screens ws) update_screen_focused_window_title
         , startupHook = do
-                startupHook conf
-                ws <- gets windowset
-                foldr1 (>>) $ map (spawnXMobar xmconf . screen_id) $ S.screens ws
+            startupHook conf
+            ws <- gets windowset
+            forM_ (S.screens ws) (spawnXMobar xmconf . screen_id)
         , manageHook = manageHook conf <+> manageDocks
         , handleEventHook = handleEventHook conf <+> docksEventHook
         }
@@ -59,43 +52,16 @@ customXMobar xmconf conf = conf
         let dir = "/tmp/xmobar/"++i
         ws <- gets windowset
 
-        let writePropertyToPipe (XMProperty.Property name f) = do
-            value <- f (S.screen scr)
+        let writePropertyToPipe (name, p) = do
+            value <- p (S.screen scr)
             io $ writeNamedPipe (dir++"/"++name) value
 
-        foldr1 (>>) $ map writePropertyToPipe (xmProperties xmconf)
+        forM_ (xmProperties xmconf) writePropertyToPipe
 
 customSBPP = xmobarPP
     { ppCurrent = xmobarColor "#429942" "" . wrap "<" ">"
-    , ppTitle = xmobarColor "green"  "" . shorten 100 }
+    , ppTitle = xmobarColor "green"  "" . shorten 100
+    , ppHiddenNoWindows = xmobarColor "#6b6b6b" ""}
 
 
 writeNamedPipe p s = writeFile p (s++"\n")
-
-killXMobar i = do
-        let dir = "/tmp/xmobar/"++i
-
-        direxists <- System.Directory.doesDirectoryExist dir
-        when direxists $ do
-            pidexists <- System.Directory.doesFileExist (dir++"/pid")
-            when pidexists $ do
-                pid <- readFile (dir++"/pid")
-                catchIO $ Signals.signalProcess Signals.sigTERM (read pid)
-            System.Directory.removeDirectoryRecursive dir
-
-
-spawnXMobar xmconf i = do
-        let dir = "/tmp/xmobar/"++i
-
-        io $ do
-            killXMobar i
-            System.Directory.createDirectoryIfMissing True dir
-            let createPropertyPipe (XMProperty.Property alias _) = Files.createNamedPipe (dir++"/"++alias) pipe_mode
-            foldr1 (>>) $ map createPropertyPipe (xmProperties xmconf)
-
-        xmonad_dir <- getXMonadDir
-        spawn $ "xmobar "++xmConfigFile xmconf++" -x "++i++" -C \"["
-                ++"Run PipeReader \\\":"++dir++"/title\\\" \\\"focusedname\\\""
-                ++", Run PipeReader \\\":"++dir++"/workspaces\\\" \\\"workspaces\\\""
-                ++"]\" & echo $! > "++dir++"/pid;"
-    where pipe_mode = Files.unionFileModes (Files.unionFileModes Files.namedPipeMode Files.ownerModes) (Files.unionFileModes Files.groupReadMode Files.otherReadMode)
