@@ -33,6 +33,7 @@ import DocksFullscreen
 import Scratchpad (scratchpadConfig, toggleScratchpad)
 
 import XMonad.Util.Run
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS
 import XMonad.Prompt
 import XMonad.Prompt.Shell
@@ -87,10 +88,10 @@ manageHook' = composeAll $
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
 
-        , ("M-<D>", nextWS)
-        , ("M-<U>", prevWS)
-        , ("M-S-<D>", shiftToNext >> nextWS)
-        , ("M-S-<U>", shiftToPrev >> prevWS)
+        , ("M-<U>", prevHiddenWS)
+        , ("M-<D>", nextHiddenWS)
+        , ("M-S-<U>", shiftToPrev >> prevHiddenWS)
+        , ("M-S-<D>", shiftToNext >> nextHiddenWS)
         , ("M-<R>", nextScreen)
         , ("M-<L>", prevScreen)
         , ("M-S-<R>", shiftNextScreen >> nextScreen)
@@ -109,10 +110,16 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
 
 mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
     [ ((modMask, button1), \w -> focus w >> mouseMoveWindow w)
-    , ((modMask, button2), windows . S.sink)
+    , ((modMask, button2), killWindow)
     , ((modMask, button3), \w -> focus w >> mouseResizeWindow w)
     , ((modMask, button4), const $ windows S.focusDown)
     , ((modMask, button5), const $ windows S.focusUp)
-    , ((modMask, 8), const nextWS)
-    , ((modMask, 9), const prevWS)
+    , ((modMask, 8), const prevHiddenWS)
+    , ((modMask, 9), const nextHiddenWS)
     ]
+
+prevHiddenWS = switchEmptyWorkspace (-1)
+nextHiddenWS = switchEmptyWorkspace 1
+switchEmptyWorkspace d = do
+    w <- findWorkspace getSortByIndex Next HiddenWS d
+    windows $ S.greedyView w
