@@ -57,7 +57,7 @@ main = xmonad
         } `additionalKeysP` keys'
 
 
-workspaces' = ["main","web","dev"]
+workspaces' = ["web","dev","git","irc"]
 
 
 layoutHook' =
@@ -70,15 +70,21 @@ layoutHook' =
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
 manageHook' = composeAll $
-    [appName  =? r --> doIgnore             |   r   <- _ignored] ++
-    [className =? c --> doCenterFloat        |   c   <- _floating ] ++
-    [className =? c --> viewShift wkspace  | (wkspace, classes) <- wkspaceByClass, c <- classes] -- ++
+       [appName  =? r --> doIgnore             |   r   <- _ignored]
+    ++ [className =? c --> doCenterFloat        |   c   <- _floating ]
+    ++ [className =? c --> (if greedy then viewShift else shift) wkspace
+            | (wkspace, classes, greedy) <- wkspaceByClass, c <- classes]
+    -- ++ [isInProperty "WM_NAME" "Quassel IRC" --> shift "irc"]
 
     where
         viewShift = doF . liftM2 (.) S.greedyView S.shift
+        shift = doF . S.shift
 
-        wkspaceByClass = [
-            -- , ("web", ["Firefox","Google-chrome","Chromium", "Chromium-browser"])
+        wkspaceByClass =
+            [ ("git", ["SmartGit/Hg"], False)
+            , ("irc", ["quasselclient"], False)
+            , ("web", ["Firefox","Google-chrome","Chromium","Chromium-browser"], True)
+            , ("dev", ["Atom"], True)
             ]
 
         _floating  = ["Xmessage","Nm-connection-editor"]
