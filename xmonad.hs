@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 import XMonad
 import XMonad.Util.EZConfig
 import XMonad.Config.Gnome
@@ -19,8 +19,9 @@ import XMonad.Hooks.Place
 import XMonad.Layout.LayoutModifier
 
 import Safe (headMay)
-import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing)
+import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, maybe)
 import Data.List (delete, nub, partition, find)
+import Control.Monad (forM_)
 import qualified XMonad.StackSet as S
 import qualified XMonad.Operations as O
 import qualified Data.Map
@@ -28,16 +29,17 @@ import XMonad.Util.NamedWindows (getName)
 import Data.Monoid
 -- import XMonad.Actions.OnScreen
 
-import XMobar
-import DocksFullscreen
-import Scratchpad (scratchpadConfig, toggleScratchpad)
-
 import XMonad.Util.Run
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
+------------------------------------------------------
+import XMobar
+import DocksFullscreen
+import Scratchpad (scratchpadConfig, toggleScratchpad)
+------------------------------------------------------
 
 main = xmonad
     $ docksFullscreenConfig
@@ -94,10 +96,10 @@ manageHook' = composeAll $
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
 
-        , ("M-<U>", prevHiddenWS)
-        , ("M-<D>", nextHiddenWS)
-        , ("M-S-<U>", shiftToPrev >> prevHiddenWS)
-        , ("M-S-<D>", shiftToNext >> nextHiddenWS)
+        , ("M-<U>", nextHiddenWS)
+        , ("M-<D>", prevHiddenWS)
+        , ("M-S-<U>", shiftToNextHidden >> nextHiddenWS)
+        , ("M-S-<D>", shiftToPrevHidden >> prevHiddenWS)
         , ("M-<R>", nextScreen)
         , ("M-<L>", prevScreen)
         , ("M-S-<R>", shiftNextScreen >> nextScreen)
@@ -122,10 +124,16 @@ mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
     , ((modMask, button5), const $ windows S.focusUp)
     , ((modMask, 8), const prevHiddenWS)
     , ((modMask, 9), const nextHiddenWS)
+    , ((modMask .|. shiftMask, 8), const $ shiftToPrevHidden >> prevHiddenWS)
+    , ((modMask .|. shiftMask, 9), const $ shiftToNextHidden >> nextHiddenWS)
     ]
 
-prevHiddenWS = switchEmptyWorkspace (-1)
-nextHiddenWS = switchEmptyWorkspace 1
-switchEmptyWorkspace d = do
-    w <- findWorkspace getSortByIndex Next HiddenWS d
-    windows $ S.greedyView w
+hiddenWsBy = findWorkspace getSortByIndex Next HiddenWS
+
+prevHiddenWS = switchHiddenWorkspace (-1)
+nextHiddenWS = switchHiddenWorkspace 1
+switchHiddenWorkspace d = windows . S.view =<< hiddenWsBy d
+
+shiftToPrevHidden = shiftHiddenWorkspace (-1)
+shiftToNextHidden = shiftHiddenWorkspace 1
+shiftHiddenWorkspace d = windows . S.shift =<< hiddenWsBy d
