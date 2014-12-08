@@ -117,15 +117,31 @@ logHook' = do
     let crnt = S.workspace $ S.current ws
     when (isNothing (S.stack crnt)) $ topicAction topicConfig (S.tag crnt)
 
-        wkspaceByClass =
-            [ ("git", ["SmartGit/Hg"], False)
-            , ("irc", ["quasselclient"], False)
-            , ("web", ["Firefox","Google-chrome","Chromium","Chromium-browser"], True)
-            , ("dev", ["Atom"], True)
-            ]
 
-        _floating  = ["Xmessage","Nm-connection-editor"]
-        _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
+eventHook' :: Event -> X All
+eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
+    switch_evt <- getAtom "XMONAD_SWITCHWKSP"
+    shift_evt <- getAtom "XMONAD_SHIFTWKSP"
+    killw_evt <- getAtom "XMONAD_KILLWKSP"
+    killf_evt <- getAtom "XMONAD_KILLFOCUSED"
+
+    all_workspaces <- asks (workspaces . config)
+    let wk = all_workspaces !! fromIntegral (head dt)
+    when (mt==switch_evt) $ windows $ S.greedyView wk
+    when (mt==shift_evt) $ windows $ liftM2 (.) S.greedyView S.shift wk
+    when (mt==killw_evt) $ do
+        ws <- gets windowset
+        killWorkspace $ fromJust $ find ((== wk). S.tag) $ S.workspaces ws
+    when (mt==killf_evt) $ do
+        ws <- gets windowset
+        let stk = S.stack $ S.workspace $ S.current ws
+        maybe (return ()) (killWindow . S.focus) stk
+
+    return (All True)
+eventHook' _ = return (All True)
+
+killWorkspace wk = forM_ (S.integrate' $ S.stack wk) killWindow
+
 
 
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
