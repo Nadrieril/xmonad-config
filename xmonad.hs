@@ -32,6 +32,9 @@ import Data.Monoid
 import XMonad.Util.Run
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS
+
+import XMonad.Actions.TopicSpace (TopicConfig(..), defaultTopicConfig, topicAction)
+
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
@@ -51,6 +54,7 @@ main = xmonad
         , workspaces = workspaces'
         , layoutHook = layoutHook'
         , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
+        -- , logHook = logHook'
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
@@ -59,7 +63,43 @@ main = xmonad
         } `additionalKeysP` keys'
 
 
-workspaces' = ["web","dev","git","irc"]
+workspaces' = ["web","dev","git","irc","music"]
+
+topicConfig = defaultTopicConfig
+    { topicDirs = Data.Map.fromList
+        [ ("dev", "projects")
+        ]
+    , defaultTopicAction = const $ return ()
+    , defaultTopic = "dashboard"
+    , topicActions = Data.Map.fromList
+        [ ("web", spawn "google-chrome")
+        , ("git", spawn "smartgithg")
+        , ("irc", spawn "quasselclient")
+        , ("music", spawn "ario")
+        ]
+    }
+
+manageHook' = composeAll $
+       [appName  =? r --> doIgnore             |   r   <- _ignored]
+    ++ [className =? c --> doCenterFloat        |   c   <- _floating ]
+    ++ [className =? c --> viewShift wkspace
+            | (wkspace, classes) <- wkspaceByClass, c <- classes]
+    -- ++ [isInProperty "WM_NAME" "Quassel IRC" --> shift "irc"]
+
+    where
+        viewShift = doF . liftM2 (.) S.view S.shift
+        -- shift = doF . S.shift
+
+        wkspaceByClass =
+            [ ("web", ["Firefox","Google-chrome","Chromium","Chromium-browser"])
+            , ("dev", ["Atom"])
+            , ("git", ["SmartGit/Hg"])
+            , ("irc", ["quasselclient"])
+            , ("music", ["Rhythmbox"])
+            ]
+
+        _floating  = ["Xmessage","Nm-connection-editor"]
+        _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
 
 
 layoutHook' =
@@ -71,16 +111,11 @@ layoutHook' =
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
-manageHook' = composeAll $
-       [appName  =? r --> doIgnore             |   r   <- _ignored]
-    ++ [className =? c --> doCenterFloat        |   c   <- _floating ]
-    ++ [className =? c --> (if greedy then viewShift else shift) wkspace
-            | (wkspace, classes, greedy) <- wkspaceByClass, c <- classes]
-    -- ++ [isInProperty "WM_NAME" "Quassel IRC" --> shift "irc"]
 
-    where
-        viewShift = doF . liftM2 (.) S.greedyView S.shift
-        shift = doF . S.shift
+logHook' = do
+    ws <- gets windowset
+    let crnt = S.workspace $ S.current ws
+    when (isNothing (S.stack crnt)) $ topicAction topicConfig (S.tag crnt)
 
         wkspaceByClass =
             [ ("git", ["SmartGit/Hg"], False)
@@ -111,8 +146,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M1-<Tab>", windows S.focusDown)
         , ("M1-S-<Tab>", windows S.focusUp)
 
-        , ("M-s", prompt "gnome-terminal-wrapper -e " defaultXPConfig)
-        , ("M-S-s", sshPrompt defaultXPConfig)
+        , ("M-s", sshPrompt defaultXPConfig)
         , ("M-p", spawn "exec $(yeganesh -x)")]
 
 
