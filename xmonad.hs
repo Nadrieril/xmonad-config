@@ -8,7 +8,6 @@ import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
 import XMonad.Layout.Tabbed
 
-import Control.Monad (liftM2, when)
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.WorkspaceByPos
 import XMonad.Hooks.DynamicLog
@@ -18,14 +17,14 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.Place
 import XMonad.Layout.LayoutModifier
 
-import Safe (headMay)
-import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, maybe)
-import Data.List (delete, nub, partition, find)
-import Control.Monad (forM_)
 import qualified XMonad.StackSet as S
 import qualified XMonad.Operations as O
-import qualified Data.Map
 import XMonad.Util.NamedWindows (getName)
+import Control.Monad (liftM2, when, forM_)
+import Safe (headMay)
+import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
+import Data.List (delete, nub, partition, find)
+import qualified Data.Map
 import Data.Monoid
 -- import XMonad.Actions.OnScreen
 
@@ -34,6 +33,7 @@ import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS
 
 import XMonad.Actions.TopicSpace (TopicConfig(..), defaultTopicConfig, topicAction)
+import XMonad.Actions.DynamicWorkspaces (withNthWorkspace, removeEmptyWorkspace)
 
 import XMonad.Prompt
 import XMonad.Prompt.Shell
@@ -42,42 +42,53 @@ import XMonad.Prompt.Ssh
 import XMobar
 import DocksFullscreen
 import Scratchpad (scratchpadConfig, toggleScratchpad)
+import qualified DynamicTopicSpace as DTS
 ------------------------------------------------------
 
 main = xmonad
     $ docksFullscreenConfig
     $ scratchpadConfig
     $ customXMobar defaultXmConfig
+    $ DTS.dynamicTopicsConfig topics
     $ gnomeConfig {
           modMask = mod4Mask
         , terminal = "gnome-terminal-wrapper"
-        , workspaces = workspaces'
         , layoutHook = layoutHook'
         , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
-        -- , logHook = logHook'
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         , mouseBindings = mouseBindings'
-        , keys = azertyKeys <+> keys defaultConfig
+        , keys = azertyKeys' <+> azertyKeys <+> keys defaultConfig
         } `additionalKeysP` keys'
 
+azertyKeys' (XConfig {modMask = modm}) = Data.Map.fromList
+    [((m .|. modm, k), withNthWorkspace f i)
+        | (i, k) <- zip [0..] [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0],
+          (f, m) <- [(S.greedyView, 0), (liftM2 (.) S.view S.shift, shiftMask)]]
 
-workspaces' = ["web","dev","git","irc","music"]
 
-topicConfig = defaultTopicConfig
-    { topicDirs = Data.Map.fromList
-        [ ("dev", "projects")
+
+topics =
+    [ ("main",      Nothing,                    Nothing)
+    , ("web",       Nothing,                    Just $ spawn "google-chrome")
+    , ("dev",       Just "$HOME/projects",      Nothing)
+    ] ++ projecttopics
+        [ ("xm", "xmonad", return ())
+        , ("b-a", "bars-angular", return ())
+        , ("b-d", "bars-django", return ())
         ]
-    , defaultTopicAction = const $ return ()
-    , defaultTopic = "dashboard"
-    , topicActions = Data.Map.fromList
-        [ ("web", spawn "google-chrome")
-        , ("git", spawn "smartgithg")
-        , ("irc", spawn "quasselclient")
-        , ("music", spawn "ario")
-        ]
-    }
+    ++
+    [ ("git",       Nothing,                    Just $ spawn "smartgithg")
+    , ("irc",       Nothing,                    Just $ spawn "quasselclient")
+    , ("music",     Just "$HOME/Music",         Just $ spawn "ario")
+    , ("videos",    Just "$HOME/Videos",        Just $ spawn "nautilus $HOME/Videos")
+    ]
+    where projecttopics = map
+            (\(n, p, a) -> ( "dev/"++n
+                           , Just $ "$HOME/projects/"++p
+                           , Just $ spawn ("atom ~/projects/"++p) >> a))
+
 
 manageHook' = composeAll $
        [appName  =? r --> doIgnore             |   r   <- _ignored]
@@ -92,7 +103,7 @@ manageHook' = composeAll $
 
         wkspaceByClass =
             [ ("web", ["Firefox","Google-chrome","Chromium","Chromium-browser"])
-            , ("dev", ["Atom"])
+            -- , ("dev", ["Atom"])
             , ("git", ["SmartGit/Hg"])
             , ("irc", ["quasselclient"])
             , ("music", ["Rhythmbox"])
@@ -112,12 +123,6 @@ layoutHook' =
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
 
-logHook' = do
-    ws <- gets windowset
-    let crnt = S.workspace $ S.current ws
-    when (isNothing (S.stack crnt)) $ topicAction topicConfig (S.tag crnt)
-
-
 eventHook' :: Event -> X All
 eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     switch_evt <- getAtom "XMONAD_SWITCHWKSP"
@@ -131,7 +136,8 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     when (mt==shift_evt) $ windows $ liftM2 (.) S.greedyView S.shift wk
     when (mt==killw_evt) $ do
         ws <- gets windowset
-        killWorkspace $ fromJust $ find ((== wk). S.tag) $ S.workspaces ws
+        maybe (return ()) clearWorkspace $ find ((== wk). S.tag) $ S.workspaces ws
+        DTS.removeWorkspace wk
     when (mt==killf_evt) $ do
         ws <- gets windowset
         let stk = S.stack $ S.workspace $ S.current ws
@@ -140,7 +146,7 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     return (All True)
 eventHook' _ = return (All True)
 
-killWorkspace wk = forM_ (S.integrate' $ S.stack wk) killWindow
+clearWorkspace wk = forM_ (S.integrate' $ S.stack wk) killWindow
 
 
 
@@ -157,8 +163,10 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<L>", shiftPrevScreen >> prevScreen)
         , ("M-<Tab>", toggleWS)
         , ("M-z", toggleScratchpad)
+        , ("M-w", DTS.topicPrompt DTS.goto)
 
         , ("M1-<F4>", kill)
+        , ("M1-C-t", DTS.spawnShell)
         , ("M1-<Tab>", windows S.focusDown)
         , ("M1-S-<Tab>", windows S.focusUp)
 
@@ -167,9 +175,9 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
 
 
 mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
-    [ ((modMask, button1), \w -> focus w >> mouseMoveWindow w)
+    [ ((modMask, button1), mouseMoveWindow)
     , ((modMask, button2), killWindow)
-    , ((modMask, button3), \w -> focus w >> mouseResizeWindow w)
+    , ((modMask, button3), mouseResizeWindow)
     , ((modMask, button4), const $ windows S.focusDown)
     , ((modMask, button5), const $ windows S.focusUp)
     , ((modMask, 8), const prevHiddenWS)
