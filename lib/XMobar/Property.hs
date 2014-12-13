@@ -6,6 +6,7 @@ import qualified XMonad.StackSet as S
 import XMonad.Hooks.DynamicLog (PP(..))
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Hooks.UrgencyHook (readUrgents)
+
 import Data.Maybe (isJust, fromJust)
 import Data.List (intercalate, find, elemIndex)
 ------------------------------------------------------
@@ -15,7 +16,7 @@ type Property = ScreenId -> X String
 lookupScreen :: ScreenId -> X (S.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
 lookupScreen id = do
     ws <- gets windowset
-    return $ fromJust $ find (\(S.Screen _ sid _) -> sid == id) (S.screens ws)
+    return $ fromJust $ find ((== id) . S.screen) (S.screens ws)
 
 
 ptyTitle :: PP -> Property
@@ -28,7 +29,10 @@ ptyTitle pp sid = do
             let focus = S.focus stk
             namedwindow <- getName focus
             let title = ppTitle pp $ show namedwindow
-            return $ wrapAction (sendEvtAction xmonadDir "KILLFOCUSED" "0") "2" title
+            return $ wrapEvtActions xmonadDir title
+                [ ("2", ("KILLFOCUSED", "0"))
+                , ("4", ("FOCUSDOWN", "0"))
+                , ("5", ("FOCUSUP", "0")) ]
 
 
 ptyWorkspaces :: PP -> Property
@@ -52,13 +56,27 @@ ptyWorkspaces pp sid = do
                wrapSwitch s = case (s, i) of
                     ("", _) -> ""
                     (_, Nothing) -> s
-                    (s, Just i) -> foldr actionTag s actionMap
-                        where action name = sendEvtAction xmonadDir name (show i)
-                              actionTag (b,a) = wrapAction (action a) b
-                              actionMap = [("1", "SWITCHWKSP"), ("3", "SHIFTWKSP"), ("2", "KILLWKSP")]
-    return $ sepBy (ppWsSep pp) . map fmt . sort' $ S.workspaces winset
+                    (s, Just i) -> wrapEvtActions xmonadDir s
+                        [ ("1", ("SWITCHWKSP", show i))
+                        , ("2", ("KILLWKSP", show i))
+                        , ("3", ("SHIFTWKSP", show i)) ]
 
+    let ret = sepBy (ppWsSep pp) . map fmt . sort' $ S.workspaces winset
+    return $ wrapEvtActions xmonadDir ret
+        [ ("4", ("PREVWKSP", "0"))
+        , ("5", ("NEXTWKSP", "0")) ]
+
+
+wrapAction :: String -> String -> String -> String
 wrapAction action button s =
     "<action=`"++action++"` button="++button++">"++s++"</action>"
+
+sendEvtAction :: FilePath -> String -> String -> String
 sendEvtAction dir name param =
     dir++"/send_xmonad_evt \"XMONAD_"++name++"\" " ++ param
+
+wrapEvtAction :: FilePath -> String -> String -> String -> String -> String
+wrapEvtAction dir name param = wrapAction (sendEvtAction dir name param)
+
+wrapEvtActions :: FilePath -> String -> [(String, (String, String))] -> String
+wrapEvtActions dir = foldr (\(b,(a,p)) -> wrapEvtAction dir a p b)

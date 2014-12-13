@@ -124,27 +124,24 @@ layoutHook' =
 
 eventHook' :: Event -> X All
 eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
-    switch_evt <- getAtom "XMONAD_SWITCHWKSP"
-    shift_evt <- getAtom "XMONAD_SHIFTWKSP"
-    killw_evt <- getAtom "XMONAD_KILLWKSP"
-    killf_evt <- getAtom "XMONAD_KILLFOCUSED"
-
     all_workspaces <- asks (workspaces . config)
     let wk = all_workspaces !! fromIntegral (head dt)
-    when (mt==switch_evt) $ windows $ S.greedyView wk
-    when (mt==shift_evt) $ windows $ liftM2 (.) S.greedyView S.shift wk
-    when (mt==killw_evt) $ do
+
+    ifEvt "XMONAD_NEXTWKSP" nextHiddenWS
+    ifEvt "XMONAD_PREVWKSP" prevHiddenWS
+    ifEvt "XMONAD_SWITCHWKSP" $ windows $ S.greedyView wk
+    ifEvt "XMONAD_SHIFTWKSP" $ windows $ liftM2 (.) S.greedyView S.shift wk
+    ifEvt "XMONAD_KILLWKSP" $ do
         DTS.clearWorkspace wk
         DTS.removeWorkspace wk
-    when (mt==killf_evt) $ do
-        ws <- gets windowset
-        let stk = S.stack $ S.workspace $ S.current ws
-        maybe (return ()) (killWindow . S.focus) stk
+
+    ifEvt "XMONAD_FOCUSUP" $ windows S.focusUp
+    ifEvt "XMONAD_FOCUSDOWN" $ windows S.focusDown
+    ifEvt "XMONAD_KILLFOCUSED" kill
 
     return (All True)
+    where ifEvt name x = getAtom name >>= \evt -> when (mt == evt) x
 eventHook' _ = return (All True)
-
-
 
 
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
@@ -165,6 +162,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
             DTS.clearWorkspace wk
             DTS.removeWorkspace wk)
 
+        , ("M-c", kill)
         , ("M1-<F4>", kill)
         , ("M1-C-t", DTS.spawnLocalShell)
         , ("M1-<Tab>", windows S.focusDown)
