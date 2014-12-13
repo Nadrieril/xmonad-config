@@ -133,8 +133,7 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     when (mt==switch_evt) $ windows $ S.greedyView wk
     when (mt==shift_evt) $ windows $ liftM2 (.) S.greedyView S.shift wk
     when (mt==killw_evt) $ do
-        ws <- gets windowset
-        maybe (return ()) clearWorkspace $ find ((== wk). S.tag) $ S.workspaces ws
+        DTS.clearWorkspace wk
         DTS.removeWorkspace wk
     when (mt==killf_evt) $ do
         ws <- gets windowset
@@ -144,7 +143,6 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     return (All True)
 eventHook' _ = return (All True)
 
-clearWorkspace wk = forM_ (S.integrate' $ S.stack wk) killWindow
 
 
 
@@ -161,6 +159,10 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<L>", shiftPrevScreen >> prevScreen)
         , ("M-<Tab>", toggleWS)
         , ("M-w", DTS.topicPrompt DTS.goto)
+        , ("M-S-w", do
+            wk <- gets (S.currentTag . windowset)
+            DTS.clearWorkspace wk
+            DTS.removeWorkspace wk)
 
         , ("M1-<F4>", kill)
         , ("M1-C-t", DTS.spawnShell)

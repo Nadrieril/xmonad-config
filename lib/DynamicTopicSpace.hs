@@ -9,10 +9,12 @@ module DynamicTopicSpace
     , goto
     , topicPrompt
     , dynamicTopicsConfig
+    , clearWorkspace
     , removeWorkspace
     ) where
 
 import XMonad (X(..), XConf(..), XConfig(..), ExtensionClass(..), WorkspaceId, WindowSet, spawn, workspaces, asks, gets, windowset, windows)
+import XMonad.Operations (killWindow)
 import qualified XMonad.Util.ExtensibleState as XS
 import qualified XMonad.StackSet as S
 import qualified XMonad.Actions.TopicSpace as TS
@@ -22,7 +24,7 @@ import XMonad.Util.Dmenu (dmenu)
 import Data.Typeable (Typeable)
 import qualified Data.Map as M
 import qualified Safe
-import Control.Monad (liftM, unless, when)
+import Control.Monad (liftM, unless, when, forM_)
 import Data.List (find, partition)
 import Data.Maybe (mapMaybe, isJust, fromMaybe)
 ------------------------------------------------------
@@ -87,6 +89,14 @@ topicPrompt f = do
     -- selection <- menuArgs "yeganesh" ["-f", "-p", "topic"] wks
     selection <- dmenu wks
     unless (null selection) $ f selection
+
+
+clearWorkspace :: WorkspaceId -> X ()
+clearWorkspace wk = do
+    wks <- gets (S.workspaces . windowset)
+    case find ((== wk). S.tag) wks of
+        Nothing -> return ()
+        Just x -> forM_ (S.integrate' $ S.stack x) killWindow
 
 
 removeWorkspace :: WorkspaceId -> X ()
