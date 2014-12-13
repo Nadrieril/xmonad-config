@@ -50,9 +50,10 @@ dynamicTopicsConfig topics conf = conf
         XS.put tc
         windows $ \s -> s { S.hidden = filter hasWindows (S.hidden s) }
         ws <- gets windowset
-        -- forM_ (S.visible ws)
+        tstc <- XS.gets makeTopicConfig
+        forM_ (map S.workspace $ S.current ws : S.visible ws)
+            (\wk -> unless (hasWindows wk) $ TS.topicAction tstc (S.tag wk))
         startupHook conf
-
     , workspaces = getTopicWorkspaces topics
     }
     where
