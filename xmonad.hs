@@ -171,7 +171,16 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M1-S-<Tab>", windows S.focusUp)
 
         , ("M-s", sshPrompt defaultXPConfig)
-        , ("M-p", spawn "exec $(yeganesh -x)")]
+        , ("M-p", spawn "exec $(yeganesh -x)")
+
+        -- , ("<XF86AudioMute>", spawn "mpc volume 0")
+        -- , ("<XF86AudioRaiseVolume>", spawn "mpc volume +2")
+        -- , ("<XF86AudioLowerVolume>", spawn "mpc volume -2")
+        , ("<XF86AudioPlay>", spawn "mpc toggle")
+        , ("<XF86AudioStop>", spawn "mpc stop")
+        , ("<XF86AudioPrev>", spawn "mpc prev")
+        , ("<XF86AudioNext>", spawn "mpc next")
+        ]
 
 
 mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
