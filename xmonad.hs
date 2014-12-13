@@ -81,6 +81,7 @@ topics =
     , ("irc",       Nothing,                    Just $ spawn "quasselclient")
     , ("music",     Just "$HOME/Music",         Just $ spawn "ario")
     , ("videos",    Just "$HOME/Videos",        Just $ spawn "nautilus $HOME/Videos")
+    , ("term",      Nothing,                    Just DTS.spawnLocalShell)
     ]
     where projecttopics = map
             (\(n, p, a) -> ( "dev/"++n
@@ -165,7 +166,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
             DTS.removeWorkspace wk)
 
         , ("M1-<F4>", kill)
-        , ("M1-C-t", DTS.spawnShell)
+        , ("M1-C-t", DTS.spawnLocalShell)
         , ("M1-<Tab>", windows S.focusDown)
         , ("M1-S-<Tab>", windows S.focusUp)
 

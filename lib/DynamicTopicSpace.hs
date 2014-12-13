@@ -5,7 +5,7 @@ module DynamicTopicSpace
     , TopicConfig(..)
     , emptyTopic
     , makeTopicConfig
-    , spawnShell
+    , spawnLocalShell
     , goto
     , topicPrompt
     , dynamicTopicsConfig
@@ -80,7 +80,7 @@ goto w = do
     TS.switchTopic tc w
 
 
-spawnShell = XS.gets makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
+spawnLocalShell = XS.gets makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
 spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
 
 
