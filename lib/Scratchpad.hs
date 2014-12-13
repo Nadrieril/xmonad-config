@@ -11,12 +11,13 @@ import XMonad.Util.Run (runInTerm)
 scratchpadName = "term"
 
 scratchpadConfig conf = conf
-    { logHook = do
-        logHook conf
-        ws <- gets windowset
-        let crnt = W.workspace $ W.current ws
-        when (W.tag crnt == scratchpadName && isNothing (W.stack crnt)) toggleScratchpad
-    , workspaces = workspaces conf ++ [scratchpadName]
+    {
+    -- { logHook = do
+    --     logHook conf
+    --     ws <- gets windowset
+    --     let crnt = W.workspace $ W.current ws
+    --     when (W.tag crnt == scratchpadName && isNothing (W.stack crnt)) toggleScratchpad
+      workspaces = workspaces conf ++ [scratchpadName]
     , manageHook = manageHook conf <+>
         composeAll [className =? c --> viewShift scratchpadName | c <- classes]
     }

@@ -41,13 +41,11 @@ import XMonad.Prompt.Ssh
 ------------------------------------------------------
 import XMobar
 import DocksFullscreen
-import Scratchpad (scratchpadConfig, toggleScratchpad)
 import qualified DynamicTopicSpace as DTS
 ------------------------------------------------------
 
 main = xmonad
     $ docksFullscreenConfig
-    $ scratchpadConfig
     $ customXMobar defaultXmConfig
     $ DTS.dynamicTopicsConfig topics
     $ gnomeConfig {
@@ -162,7 +160,6 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<R>", shiftNextScreen >> nextScreen)
         , ("M-S-<L>", shiftPrevScreen >> prevScreen)
         , ("M-<Tab>", toggleWS)
-        , ("M-z", toggleScratchpad)
         , ("M-w", DTS.topicPrompt DTS.goto)
 
         , ("M1-<F4>", kill)
