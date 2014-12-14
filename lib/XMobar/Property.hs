@@ -30,9 +30,9 @@ ptyTitle pp sid = do
             namedwindow <- getName focus
             let title = ppTitle pp $ show namedwindow
             return $ wrapEvtActions xmonadDir title
-                [ ("2", ("KILLFOCUSED", "0"))
-                , ("4", ("FOCUSDOWN", "0"))
-                , ("5", ("FOCUSUP", "0")) ]
+                [ ("2", ("KILLFOCUSED", show $ fromIntegral sid))
+                , ("4", ("FOCUSUP", show $ fromIntegral sid))
+                , ("5", ("FOCUSDOWN", show $ fromIntegral sid)) ]
 
 
 ptyWorkspaces :: PP -> Property
@@ -57,14 +57,15 @@ ptyWorkspaces pp sid = do
                     ("", _) -> ""
                     (_, Nothing) -> s
                     (s, Just i) -> wrapEvtActions xmonadDir s
-                        [ ("1", ("SWITCHWKSP", show i))
-                        , ("2", ("KILLWKSP", show i))
-                        , ("3", ("SHIFTWKSP", show i)) ]
+                        [ ("1", ("SWITCHWKSP", show n))
+                        , ("2", ("KILLWKSP", show n))
+                        , ("3", ("SHIFTWKSP", show n)) ]
+                        where n = 10 * fromIntegral i + fromIntegral sid
 
     let ret = sepBy (ppWsSep pp) . map fmt . sort' $ S.workspaces winset
     return $ wrapEvtActions xmonadDir ret
-        [ ("4", ("PREVWKSP", "0"))
-        , ("5", ("NEXTWKSP", "0")) ]
+        [ ("4", ("PREVWKSP", show $ fromIntegral sid))
+        , ("5", ("NEXTWKSP", show $ fromIntegral sid)) ]
 
 
 wrapAction :: String -> String -> String -> String

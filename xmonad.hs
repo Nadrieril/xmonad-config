@@ -26,7 +26,7 @@ import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
 import Data.List (delete, nub, partition, find)
 import qualified Data.Map
 import Data.Monoid
--- import XMonad.Actions.OnScreen
+import XMonad.Actions.OnScreen
 
 import XMonad.Util.Run
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
@@ -125,19 +125,21 @@ layoutHook' =
 eventHook' :: Event -> X All
 eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     all_workspaces <- asks (workspaces . config)
-    let wk = all_workspaces !! fromIntegral (head dt)
+    let n = fromIntegral (head dt)
+    let wk = all_workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
+    let scr = S $ n `mod` 10
 
-    ifEvt "XMONAD_NEXTWKSP" nextHiddenWS
-    ifEvt "XMONAD_PREVWKSP" prevHiddenWS
-    ifEvt "XMONAD_SWITCHWKSP" $ windows $ S.greedyView wk
-    ifEvt "XMONAD_SHIFTWKSP" $ windows $ liftM2 (.) S.greedyView S.shift wk
+    ifEvt "XMONAD_NEXTWKSP" $ onScreen' nextHiddenWS FocusNew scr
+    ifEvt "XMONAD_PREVWKSP" $ onScreen' prevHiddenWS FocusNew scr
+    ifEvt "XMONAD_SWITCHWKSP" $ windows $ onScreen (S.greedyView wk) FocusNew scr
+    ifEvt "XMONAD_SHIFTWKSP" $ windows $ onScreen (liftM2 (.) S.greedyView S.shift wk) FocusNew scr
     ifEvt "XMONAD_KILLWKSP" $ do
         DTS.clearWorkspace wk
         DTS.removeWorkspace wk
 
-    ifEvt "XMONAD_FOCUSUP" $ windows S.focusUp
-    ifEvt "XMONAD_FOCUSDOWN" $ windows S.focusDown
-    ifEvt "XMONAD_KILLFOCUSED" kill
+    ifEvt "XMONAD_FOCUSUP" $ windows $ onScreen S.focusUp FocusNew scr
+    ifEvt "XMONAD_FOCUSDOWN" $ windows $ onScreen S.focusDown FocusNew scr
+    ifEvt "XMONAD_KILLFOCUSED" $ onScreen' kill FocusNew scr
 
     return (All True)
     where ifEvt name x = getAtom name >>= \evt -> when (mt == evt) x
