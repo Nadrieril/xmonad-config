@@ -5,7 +5,6 @@ module DynamicTopicSpace
     , TopicConfig(..)
     , emptyTopic
     , makeTopicConfig
-    , spawnLocalShell
     , goto
     , topicPrompt
     , dynamicTopicsConfig
@@ -13,7 +12,26 @@ module DynamicTopicSpace
     , removeWorkspace
     ) where
 
-import XMonad (X(..), XConf(..), XConfig(..), ExtensionClass(..), WorkspaceId, WindowSet, spawn, workspaces, asks, gets, windowset, windows)
+import XMonad
+    (X(..)
+    , XConf(..)
+    , XConfig(..)
+    , ExtensionClass(..)
+    , WorkspaceId
+    , WindowSet
+    , Window
+    , Query
+    , Layout(..)
+    , LayoutClass
+    , Tall(..)
+    , Mirror(..)
+    , spawn
+    , workspaces
+    , asks
+    , gets
+    , windowset
+    , windows)
+
 import XMonad.Operations (killWindow)
 import qualified XMonad.Util.ExtensibleState as XS
 import qualified XMonad.StackSet as S
@@ -78,11 +96,6 @@ goto w = do
     addHiddenWorkspace w
     tc <- XS.gets makeTopicConfig
     TS.switchTopic tc w
-
-
-spawnLocalShell = XS.gets makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
--- spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
-spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
 
 
 topicPrompt :: (String -> X ()) -> X ()

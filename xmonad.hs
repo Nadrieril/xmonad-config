@@ -73,7 +73,7 @@ topics =
     , ("irc",       Nothing,                    Just $ spawn "quasselclient")
     , ("music",     Just "$HOME/Music",         Just $ spawn "ario")
     , ("videos",    Just "$HOME/Videos",        Just $ spawn "nautilus $HOME/Videos")
-    , ("term",      Nothing,                    Just DTS.spawnLocalShell)
+    , ("term",      Nothing,                    Just spawnLocalShell)
     ]
     where projecttopics = map
             (\(n, p, a) -> ( "dev/"++n
@@ -157,9 +157,11 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
             DTS.clearWorkspace wk
             DTS.removeWorkspace wk)
 
+        , ("M1-C-t", spawnLocalShell)
+        , ("M-n", spawnFilemanager)
+
         , ("M-c", kill)
         , ("M1-<F4>", kill)
-        , ("M1-C-t", DTS.spawnLocalShell)
         , ("M1-<Tab>", windows S.focusDown)
         , ("M1-S-<Tab>", windows S.focusUp)
 
@@ -174,6 +176,14 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("<XF86AudioPrev>", spawn "mpc prev")
         , ("<XF86AudioNext>", spawn "mpc next")
         ]
+
+
+
+
+spawnLocalShell = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
+spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
+spawnFilemanager = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnFilemanagerIn
+spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
 
 
 mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
