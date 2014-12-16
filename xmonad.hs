@@ -114,10 +114,11 @@ manageHook' = composeAll $
 
 layoutHook' =
         onWorkspaces ["term"] (doubletiled ||| full ||| tiled) $
-        full ||| tiled
+        full ||| topbar ||| tiled
     where
         full = noBorders simpleTabbed
         tiled = smartBorders (Tall 1 (3/100) (1/2))
+        topbar = smartBorders (Mirror $ Tall 1 (3/100) (4/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
