@@ -81,7 +81,8 @@ goto w = do
 
 
 spawnLocalShell = XS.gets makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
-spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
+-- spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
+spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
 
 
 topicPrompt :: (String -> X ()) -> X ()

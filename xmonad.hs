@@ -50,7 +50,7 @@ main = xmonad
     $ DTS.dynamicTopicsConfig topics
     $ gnomeConfig {
           modMask = mod4Mask
-        , terminal = "gnome-terminal-wrapper"
+        , terminal = "xterm"
         , layoutHook = layoutHook'
         , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
         , handleEventHook = eventHook'
