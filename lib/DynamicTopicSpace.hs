@@ -1,30 +1,24 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module DynamicTopicSpace
-    ( TopicWorkspace(..)
-    , Topic(..)
-    , TopicConfig(..)
-    , emptyTopic
+    ( Topic(..)
+    , fromList
+    , dynamicTopicsConfig
+    , defaultConfig
     , makeTopicConfig
+
     , goto
     , topicPrompt
-    , dynamicTopicsConfig
     , clearWorkspace
     , removeWorkspace
     ) where
 
 import XMonad
-    (X(..)
+    ( X(..)
     , XConf(..)
     , XConfig(..)
     , ExtensionClass(..)
     , WorkspaceId
-    , WindowSet
-    , Window
     , Query
-    , Layout(..)
-    , LayoutClass
-    , Tall(..)
-    , Mirror(..)
     , spawn
     , workspaces
     , asks
@@ -44,50 +38,61 @@ import qualified Data.Map as M
 import qualified Safe
 import Control.Monad (liftM, unless, when, forM_)
 import Data.List (find, partition)
-import Data.Maybe (mapMaybe, isJust, fromMaybe)
+import Data.Maybe (mapMaybe, isJust, fromMaybe, fromJust)
+import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
     { topicDir :: Maybe FilePath
     , topicAction :: Maybe (X ())
+    , topicWindows :: Maybe (Query Bool)
     }
 
+data StoredTopic = StoredTopic
+    { storedTopicDir :: Maybe FilePath
+    , storedTopicAction :: Maybe (X ())
+    }
+storeTopic t = StoredTopic (topicDir t) (topicAction t)
+
+data TopicStorage = TopicStorage (M.Map WorkspaceId StoredTopic)
+    deriving Typeable
+
+instance ExtensionClass TopicStorage where
+    initialValue = TopicStorage M.empty
+
 data TopicConfig = TopicConfig
-    { topics :: M.Map WorkspaceId Topic
-    , orderedNames :: [WorkspaceId]
-    } deriving Typeable
+    { topics :: M.Map WorkspaceId StoredTopic
+    , topicNames :: [WorkspaceId]
+    }
 
-instance ExtensionClass TopicConfig where
-    initialValue = TopicConfig M.empty []
+defaultConfig = TopicConfig M.empty []
 
-type TopicWorkspace = (WorkspaceId, Maybe FilePath, Maybe (X ()))
+fromList l =
+    let topics = map (\(n,d,a) -> (n, Topic d a Nothing)) l in
+    TopicConfig
+        { topics = M.fromList $ map (second storeTopic) topics
+        , topicNames = map fst topics
+        }
 
-emptyTopic = Topic Nothing Nothing
-
-dynamicTopicsConfig topics conf = conf
+dynamicTopicsConfig tc conf = conf
     { startupHook = do
-        XS.put tc
+        XS.put $ TopicStorage $ topics tc
         windows $ \s -> s { S.hidden = filter hasWindows (S.hidden s) }
         ws <- gets windowset
         tstc <- XS.gets makeTopicConfig
         forM_ (map S.workspace $ S.current ws : S.visible ws)
             (\wk -> unless (hasWindows wk) $ TS.topicAction tstc (S.tag wk))
         startupHook conf
-    , workspaces = getTopicWorkspaces topics
+    , workspaces = topicNames tc
     }
     where
-        getTopicWorkspaces = map (\(x,_,_) -> x)
         hasWindows = isJust . S.stack
-        tc = TopicConfig
-            { topics = M.fromList $ map (\(n, d, a) -> (n, Topic d a)) topics
-            , orderedNames = getTopicWorkspaces topics
-            }
 
 
-makeTopicConfig :: TopicConfig -> TS.TopicConfig
-makeTopicConfig tc = TS.defaultTopicConfig
-    { TS.topicDirs = M.mapMaybe topicDir (topics tc)
-    , TS.topicActions = M.mapMaybe topicAction (topics tc)
-    , TS.defaultTopic = fromMaybe "1" $ Safe.headMay (orderedNames tc)
+makeTopicConfig :: TopicStorage -> TS.TopicConfig
+makeTopicConfig (TopicStorage topics) = TS.defaultTopicConfig
+    { TS.topicDirs = M.mapMaybe storedTopicDir topics
+    , TS.topicActions = M.mapMaybe storedTopicAction topics
+    -- , TS.defaultTopic = fromMaybe "1" $ Safe.headMay (topicNames tc)
     , TS.defaultTopicAction = const $ return ()
     }
 
@@ -132,9 +137,9 @@ removeWorkspace w = windows $ \s ->
     let cur = S.current s
         (wks_to_remove, nhidden) = partition ((==w) . S.tag) $ S.hidden s
         freed_stcks = map S.stack wks_to_remove
-        new_stk = foldl merge (S.stack (S.workspace cur)) freed_stcks
+        new_stk = foldr merge (S.stack (S.workspace cur)) freed_stcks
         removed_from_hidden = s { S.current = cur {S.workspace = (S.workspace cur) {S.stack = new_stk}}
-                 , S.hidden = nhidden}
+                                , S.hidden = nhidden}
     in fromMaybe removed_from_hidden removed_from_visible
     where
         merge x y = S.differentiate (S.integrate' x ++ S.integrate' y)

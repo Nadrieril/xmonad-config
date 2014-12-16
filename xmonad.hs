@@ -39,7 +39,7 @@ import qualified DynamicTopicSpace as DTS
 main = xmonad
     $ docksFullscreenConfig
     $ customXMobar defaultXmConfig
-    $ DTS.dynamicTopicsConfig topics
+    $ DTS.dynamicTopicsConfig topicConfig
     $ gnomeConfig {
           modMask = mod4Mask
         , terminal = "xterm"
@@ -59,7 +59,7 @@ azertyKeys' (XConfig {modMask = modm}) = Data.Map.fromList
 
 
 
-topics =
+topicConfig = DTS.fromList $
     [ ("main",      Nothing,                    Nothing)
     , ("web",       Nothing,                    Just $ spawn "google-chrome")
     , ("dev",       Just "$HOME/projects",      Nothing)
@@ -67,12 +67,13 @@ topics =
         [ ("xm", "xmonad", return ())
         , ("b-a", "bars-angular", return ())
         , ("b-d", "bars-django", return ())
+        , ("psc", "PSC", return ())
         ]
     ++
     [ ("git",       Nothing,                    Just $ spawn "smartgithg")
     , ("irc",       Nothing,                    Just $ spawn "quasselclient")
     , ("music",     Just "$HOME/Music",         Just $ spawn "ario")
-    , ("videos",    Just "$HOME/Videos",        Just $ spawn "nautilus $HOME/Videos")
+    , ("videos",    Just "$HOME/Videos",        Just spawnFilemanager)
     , ("term",      Nothing,                    Just spawnLocalShell)
     ]
     where projecttopics = map
@@ -97,7 +98,7 @@ manageHook' = composeAll $
             -- , ("dev", ["Atom"])
             , ("git", ["SmartGit/Hg"])
             , ("irc", ["quasselclient"])
-            , ("music", ["Rhythmbox"])
+            , ("music", ["ario"])
             ]
 
         _floating  = ["Xmessage","Nm-connection-editor"]
