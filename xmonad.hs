@@ -1,43 +1,35 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 import XMonad
-import XMonad.Util.EZConfig
-import XMonad.Config.Gnome
+import qualified XMonad.StackSet as S
+import qualified XMonad.Util.ExtensibleState as XS
+
+import XMonad.Util.EZConfig (additionalKeysP)
+import XMonad.Config.Gnome (gnomeConfig)
 import XMonad.Config.Azerty (azertyKeys)
 
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
-import XMonad.Layout.Tabbed
+import XMonad.Layout.Tabbed (simpleTabbed)
 
-import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.WorkspaceByPos
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.FadeInactive
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.Place
-import XMonad.Layout.LayoutModifier
+import XMonad.Hooks.ManageHelpers (doCenterFloat)
+import XMonad.Hooks.Place (placeHook, simpleSmart)
 
-import qualified XMonad.StackSet as S
-import qualified XMonad.Operations as O
-import XMonad.Util.NamedWindows (getName)
-import Control.Monad (liftM2, when, forM_)
-import Safe (headMay)
-import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
-import Data.List (delete, nub, partition, find)
-import qualified Data.Map
-import Data.Monoid
-import XMonad.Actions.OnScreen
-
-import XMonad.Util.Run
+import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(..))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
-import XMonad.Actions.CycleWS
+import XMonad.Actions.CycleWS (nextScreen, prevScreen, shiftNextScreen, shiftPrevScreen, toggleWS, findWorkspace, WSType(..), Direction1D(..))
+import qualified XMonad.Actions.TopicSpace as TS
+import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
 
-import XMonad.Actions.TopicSpace (TopicConfig(..), defaultTopicConfig, topicAction)
-import XMonad.Actions.DynamicWorkspaces (withNthWorkspace, removeEmptyWorkspace)
-
-import XMonad.Prompt
+import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Shell
-import XMonad.Prompt.Ssh
+import XMonad.Prompt.Ssh (sshPrompt)
+
+import Control.Monad (liftM2, when, forM_)
+import qualified Data.Map
+import Data.List (delete, nub, partition, find)
+import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
+import Data.Monoid (All(..))
+import Safe (headMay)
 ------------------------------------------------------
 import XMobar
 import DocksFullscreen
