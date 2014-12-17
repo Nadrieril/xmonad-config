@@ -19,6 +19,7 @@ import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS (nextScreen, prevScreen, shiftNextScreen, shiftPrevScreen, toggleWS, findWorkspace, WSType(..), Direction1D(..))
 import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
+import XMonad.Actions.SpawnOn (manageSpawn, spawnOn)
 
 import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Shell
@@ -34,6 +35,7 @@ import Safe (headMay)
 import XMobar
 import DocksFullscreen
 import qualified DynamicTopicSpace as DTS
+import ManageNext (manageNext, manageManageNext)
 ------------------------------------------------------
 
 main = xmonad
@@ -44,7 +46,7 @@ main = xmonad
           modMask = mod4Mask
         , terminal = "xterm"
         , layoutHook = layoutHook'
-        , manageHook = placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
+        , manageHook = manageManageNext <+> manageSpawn <+> placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
@@ -59,9 +61,16 @@ azertyKeys' (XConfig {modMask = modm}) = Data.Map.fromList
 
 
 
+runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
+runOnByClass prog classNames wk = do
+    manageNext query (doF $ S.shift wk)
+    spawn prog
+    where query = foldl1 (<||>) (map (className =?) classNames)
+
+
 topicConfig = DTS.fromList $
     [ ("main",      Nothing,                    Nothing)
-    , ("web",       Nothing,                    Just $ spawn "google-chrome")
+    , ("web",       Just "$HOME/Downloads",     Just $ spawnOn "web" "google-chrome")
     , ("dev",       Just "$HOME/projects",      Nothing)
     ] ++ projecttopics
         [ ("xm", "xmonad", return ())
@@ -70,16 +79,20 @@ topicConfig = DTS.fromList $
         , ("psc", "PSC", return ())
         ]
     ++
-    [ ("git",       Nothing,                    Just $ spawn "smartgithg")
-    , ("irc",       Nothing,                    Just $ spawn "quasselclient")
-    , ("music",     Just "$HOME/Music",         Just $ spawn "ario")
+    [ ("git",       Nothing,                    Just $ spawnOn "git" "smartgithg")
+    , ("irc",       Nothing,                    Just $ spawnOn "irc" "quasselclient")
+    , ("music",     Just "$HOME/Music",         Just $ spawnOn "music" "ario")
     , ("videos",    Just "$HOME/Videos",        Just spawnFilemanager)
     , ("term",      Nothing,                    Just spawnLocalShell)
     ]
-    where projecttopics = map
-            (\(n, p, a) -> ( "dev/"++n
-                           , Just $ "$HOME/projects/"++p
-                           , Just $ spawn ("atom ~/projects/"++p) >> a))
+    where projecttopics l = do
+            (n, p, a) <- l
+            let wk = "dev/"++n
+            return ( wk
+                   , Just $ "$HOME/projects/"++p
+                --    , Just $ spawnOn wk ("atom ~/projects/"++p) >> a)
+                   , Just $ runOnByClass ("atom ~/projects/"++p) classes wk >> a)
+            where classes = ["Atom"]
 
 
 manageHook' = composeAll $
