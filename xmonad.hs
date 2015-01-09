@@ -70,8 +70,16 @@ runOnByClass prog classNames wk = do
 
 topicConfig = DTS.fromList $
     [ ("main",      Nothing,                    Nothing)
-    , ("web",       Just "$HOME/Downloads",     Just $ spawnOn "web" "google-chrome")
-    , ("dev",       Just "$HOME/projects",      Nothing)
+    , ("web",       Nothing,     Just $ spawnOn "web" "google-chrome")] ++
+    [ (show i, Nothing, Nothing) | i <- [0..5] ] ++
+    [ ("mail",      Nothing,                    Just $ spawnOn "mail" "icedove")
+    , ("game",      Nothing,                    Nothing)
+    , ("backup",    Nothing,                    Just $ spawnOn "backup" "grsync")
+    , ("video",     Just "$HOME/Videos",        Just spawnFilemanager)
+    ] ++
+
+    [ ("dev",       Just "$HOME/projects",      Nothing)
+    , ("dev/java",  Just "$HOME/projects/java", Just $ spawnOn "dev/java" "eclipse")
     ] ++ projecttopics
         [ ("xm", "xmonad", return ())
         , ("b-a", "bars-angular", return ())
@@ -80,9 +88,10 @@ topicConfig = DTS.fromList $
         ]
     ++
     [ ("git",       Nothing,                    Just $ spawnOn "git" "smartgithg")
-    , ("irc",       Nothing,                    Just $ spawnOn "irc" "quasselclient")
-    , ("music",     Just "$HOME/Music",         Just $ spawnOn "music" "ario")
-    , ("videos",    Just "$HOME/Videos",        Just spawnFilemanager)
+    ] ++
+
+    [ ("irc",       Nothing,                    Just $ spawnOn "irc" "quasselclient")
+    , ("music",     Just "$HOME/Music",         Just $ spawnOn "music" "rhythmbox")
     , ("term",      Nothing,                    Just spawnLocalShell)
     ]
     where projecttopics l = do
@@ -120,11 +129,12 @@ manageHook' = composeAll $
 
 layoutHook' =
         onWorkspaces ["term"] (doubletiled ||| full ||| tiled) $
-        full ||| topbar ||| tiled
+        onWorkspaces ["dev/b-a", "dev/b-d"] (full ||| topbar ||| tiled) $
+        full ||| tiled
     where
         full = noBorders simpleTabbed
         tiled = smartBorders (Tall 1 (3/100) (1/2))
-        topbar = smartBorders (Mirror $ Tall 1 (3/100) (4/100))
+        topbar = smartBorders (Mirror $ Tall 1 (3/100) (7/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
