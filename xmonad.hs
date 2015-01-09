@@ -151,8 +151,10 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     ifEvt "XMONAD_SWITCHWKSP" $ windows $ onScreen (S.greedyView wk) FocusNew scr
     ifEvt "XMONAD_SHIFTWKSP" $ windows $ onScreen (liftM2 (.) S.greedyView S.shift wk) FocusNew scr
     ifEvt "XMONAD_KILLWKSP" $ do
-        DTS.clearWorkspace wk
-        DTS.removeWorkspace wk
+        empty <- isEmpty wk
+        if empty
+            then DTS.removeWorkspace wk
+            else DTS.clearWorkspace wk
 
     ifEvt "XMONAD_FOCUSUP" $ windows $ onScreen S.focusUp FocusNew scr
     ifEvt "XMONAD_FOCUSDOWN" $ windows $ onScreen S.focusDown FocusNew scr
@@ -160,6 +162,9 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
 
     return (All True)
     where ifEvt name x = getAtom name >>= \evt -> when (mt == evt) x
+          isEmpty wk = do
+            wks <- gets (S.workspaces . windowset)
+            return $ isNothing $ S.stack =<< find ((==wk) . S.tag) wks
 eventHook' _ = return (All True)
 
 
