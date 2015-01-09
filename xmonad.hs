@@ -44,7 +44,7 @@ main = xmonad
     $ DTS.dynamicTopicsConfig topicConfig
     $ gnomeConfig {
           modMask = mod4Mask
-        , terminal = "xterm"
+        , terminal = "gnome-terminal.wrapper"
         , layoutHook = layoutHook'
         , manageHook = manageManageNext <+> manageSpawn <+> placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
         , handleEventHook = eventHook'
@@ -195,7 +195,8 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
 
 
 spawnLocalShell = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
-spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
+-- spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
+spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
 spawnFilemanager = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnFilemanagerIn
 spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
 
