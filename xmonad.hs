@@ -81,7 +81,7 @@ topicConfig = DTS.fromList $
     [ ("dev",       Just "$HOME/projects",      Nothing)
     , ("dev/java",  Just "$HOME/projects/java", Just $ spawnOn "dev/java" "eclipse")
     ] ++ projecttopics
-        [ ("xm", "xmonad", return ())
+        [ ("xm",  "xmonad", return ())
         , ("b-a", "bars-angular", return ())
         , ("b-d", "bars-django", return ())
         , ("psc", "PSC", return ())
@@ -180,7 +180,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<R>", shiftNextScreen >> nextScreen)
         , ("M-S-<L>", shiftPrevScreen >> prevScreen)
         , ("M-<Tab>", toggleWS)
-        , ("M-w", DTS.topicPrompt DTS.goto)
+        , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
         , ("M-S-w", do
             wk <- gets (S.currentTag . windowset)
             DTS.clearWorkspace wk

@@ -8,6 +8,7 @@ module DynamicTopicSpace
 
     , goto
     , topicPrompt
+    , topicGridSelect
     , clearWorkspace
     , removeWorkspace
     ) where
@@ -32,6 +33,7 @@ import qualified XMonad.StackSet as S
 import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Util.Dmenu (dmenu)
+import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, GSConfig(..))
 
 import Data.Typeable (Typeable)
 import qualified Data.Map as M
@@ -103,12 +105,24 @@ goto w = do
     TS.switchTopic tc w
 
 
-topicPrompt :: (String -> X ()) -> X ()
-topicPrompt f = do
+topicPrompt :: X (Maybe WorkspaceId)
+topicPrompt = do
     wks <- asks (workspaces . config)
     -- selection <- menuArgs "yeganesh" ["-f", "-p", "topic"] wks
     selection <- dmenu wks
-    unless (null selection) $ f selection
+    return $ if null selection
+                then Nothing
+                else Just selection
+
+topicGridSelect :: X (Maybe WorkspaceId)
+topicGridSelect = do
+        let cfg = (buildDefaultGSConfig colorizer) { gs_navigate = navNSearch }
+        wks <- asks (workspaces . config)
+        gridselect cfg (map (\a -> (a,a)) wks)
+    where colorizer wk active =
+            if active
+            then return ("#B0B0B0", "#000000")
+            else return ("#808080", "#000000")
 
 
 clearWorkspace :: WorkspaceId -> X ()
