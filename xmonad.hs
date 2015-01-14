@@ -10,6 +10,7 @@ import XMonad.Config.Azerty (azertyKeys)
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
 import XMonad.Layout.Tabbed (simpleTabbed)
+import XMonad.Layout.Maximize (maximize, maximizeRestore)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
@@ -127,7 +128,7 @@ manageHook' = composeAll $
         _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
 
 
-layoutHook' =
+layoutHook' = maximize $
         onWorkspaces ["term"] (doubletiled ||| full ||| tiled) $
         onWorkspaces ["dev/b-a", "dev/b-d"] (full ||| topbar ||| tiled) $
         full ||| tiled
@@ -189,10 +190,11 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M1-C-t", spawnLocalShell)
         , ("M-n", spawnFilemanager)
 
-        , ("M-c", kill)
-        , ("M1-<F4>", kill)
         , ("M1-<Tab>", windows S.focusDown)
         , ("M1-S-<Tab>", windows S.focusUp)
+        , ("M-<Esc>", withFocused (sendMessage . maximizeRestore))
+        , ("M-c", kill)
+        , ("M1-<F4>", kill)
 
         , ("M-s", sshPrompt defaultXPConfig)
         , ("M-p", spawn "exec $(yeganesh -x)")
