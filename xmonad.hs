@@ -79,17 +79,14 @@ runOnByClass prog classNames wk = do
 
 
 topicConfig = DTS.fromList $
-    [ ("main",      Nothing,                    Nothing)
-    , ("web",       Nothing,     Just $ spawnOn "web" "google-chrome")] ++
-    [ (show i, Nothing, Nothing) | i <- [0..5] ] ++
-    [ ("mail",      Nothing,                    Just $ spawnOn "mail" "icedove")
-    , ("game",      Nothing,                    Nothing)
-    , ("backup",    Nothing,                    Just $ spawnOn "backup" "grsync")
-    , ("video",     Just "$HOME/Videos",        Just spawnFilemanager)
+    [ ("main",      Nothing,                      Nothing)
+    , ("web",       Nothing,                      Just $ spawnOn "web" "google-chrome")
+    , ("game",      Nothing,                      Nothing)
+    , ("video",     Just "$HOME/Videos",          Just spawnFilemanager)
     ] ++
 
-    [ ("dev",       Just "$HOME/projects",      Nothing)
-    , ("dev/java",  Just "$HOME/projects/java", Just $ spawnOn "dev/java" "eclipse")
+    [ ("dev",       Just "$HOME/projects",        Nothing)
+    , ("dev/java",  Just "$HOME/projects/java",   Just $ spawnOn "dev/java" "eclipse")
     ] ++ projecttopics
         [ ("xm",  "xmonad", return ())
         , ("b-a", "bars-angular", return ())
@@ -97,13 +94,13 @@ topicConfig = DTS.fromList $
         , ("psc", "PSC", return ())
         ]
     ++
-    [ ("git",       Nothing,                    Just $ spawnOn "git" "smartgithg")
-    ] ++
-
-    [ ("irc",       Nothing,                    Just $ spawnOn "irc" "quasselclient")
-    , ("music",     Just "$HOME/Music",         Just $ spawnOn "music" "rhythmbox")
-    , ("term",      Nothing,                    Just spawnLocalShell)
-    ]
+    [ ("backup",    Nothing,                      Just $ spawnOn "backup" "grsync")
+    , ("mail",      Nothing,                      Just $ spawnOn "mail" "icedove")
+    , ("git",       Nothing,                      Just $ spawnOn "git" "smartgithg")
+    , ("irc",       Nothing,                      Just $ spawnOn "irc" "quasselclient")
+    , ("music",     Just "$HOME/Music",           Just $ spawnOn "music" "rhythmbox")
+    , ("term",      Nothing,                      Just spawnLocalShell)
+    ] ++ [ (show i, Nothing, Nothing) | i <- [0..5] ]
     where projecttopics l = do
             (n, p, a) <- l
             let wk = "dev/"++n
