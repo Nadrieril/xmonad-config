@@ -231,6 +231,8 @@ mouseBindings' (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
     , ((modMask, button3), mouseResizeWindow)
     , ((modMask, button4), const $ windows S.focusDown)
     , ((modMask, button5), const $ windows S.focusUp)
+    , ((modMask .|. shiftMask, button4), const $ windows S.swapDown)
+    , ((modMask .|. shiftMask, button5), const $ windows S.swapUp)
     , ((modMask, 8), const prevHiddenWS)
     , ((modMask, 9), const nextHiddenWS)
     , ((modMask .|. shiftMask, 8), const $ shiftToPrevHidden >> prevHiddenWS)
