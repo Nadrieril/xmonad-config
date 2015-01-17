@@ -72,38 +72,62 @@ numpadKeys (XConfig {modMask = modm}) = Data.Map.fromList
             , xK_KP_Insert] -- 0
 
 
+topic = DTS.defaultTopic
 
 topicConfig = DTS.fromList $
-    [ ("main",      Nothing,                      Nothing)
-    , ("web",       Nothing,                      Just $ spawnOn "web" "google-chrome")
-    , ("game",      Nothing,                      Nothing)
-    , ("video",     Just "$HOME/Videos",          Just spawnFilemanager)
+    [ ("main", topic)
+    , ("web", topic {
+        DTS.topicAction = flip spawnOn "google-chrome"
+    })
+    , ("game", topic)
+    , ("video", topic {
+        DTS.topicDir = "$HOME/Videos",
+        DTS.topicAction = const spawnFilemanager
+    })
     ] ++
 
-    [ ("dev",       Just "$HOME/projects",        Nothing)
-    , ("dev/java",  Just "$HOME/projects/java",   Just $ spawnOn "dev/java" "eclipse")
+    [ ("dev", topic {
+        DTS.topicDir = "$HOME/projects"
+    })
+    , ("dev/java", topic {
+        DTS.topicDir = "$HOME/projects/java",
+        DTS.topicAction = flip spawnOn "eclipse"
+    })
     ] ++ projecttopics
         [ ("xm",  "xmonad", return ())
-        , ("b-a", "bars-angular", return ())
-        , ("b-d", "bars-django", return ())
+        , ("b-a", "bars-angular", spawnLocalIShellCmd "grunt serve")
+        , ("b-d", "bars-django", spawnLocalIShellCmd "python manage.py runserver_plus" >> spawnLocalIShellCmd "python manage.py shell_plus")
         , ("psc", "PSC", return ())
         ]
     ++
-    [ ("backup",    Nothing,                      Just $ spawnOn "backup" "grsync")
-    , ("mail",      Nothing,                      Just $ spawnOn "mail" "icedove")
-    , ("git",       Nothing,                      Just $ spawnOn "git" "smartgithg")
-    , ("irc",       Nothing,                      Just $ spawnOn "irc" "quasselclient")
-    , ("music",     Just "$HOME/Music",           Just $ spawnOn "music" "rhythmbox")
-    , ("term",      Nothing,                      Just spawnLocalShell)
-    ] ++ [ (show i, Nothing, Nothing) | i <- [0..5] ]
+    [ ("backup", topic {
+        DTS.topicAction = flip spawnOn "grsync"
+    })
+    , ("mail", topic {
+        DTS.topicAction = flip spawnOn "icedove"
+    })
+    , ("git", topic {
+        DTS.topicAction = flip spawnOn "smartgithg"
+    })
+    , ("irc", topic {
+        DTS.topicAction = flip spawnOn "quasselclient"
+    })
+    , ("music", topic {
+        DTS.topicDir = "$HOME/Music",
+        DTS.topicAction = flip spawnOn "rhythmbox"
+    })
+    , ("term", topic {
+        DTS.topicAction = const spawnLocalShell
+    })
+    ] ++ [ (show i, topic) | i <- [0..5] ]
     where projecttopics l = do
             (n, p, a) <- l
-            let wk = "dev/"++n
-            return ( wk
-                   , Just $ "$HOME/projects/"++p
-                --    , Just $ spawnOn wk ("atom ~/projects/"++p) >> a)
-                   , Just $ runOnByClass ("atom ~/projects/"++p) classes wk >> a)
+            return ("dev/"++n, topic {
+                DTS.topicDir = "$HOME/projects/"++p,
+                DTS.topicAction = \wk -> runOnByClass ("atom ~/projects/"++p) classes wk >> a
+            })
             where classes = ["Atom"]
+
 
 
 manageHook' = composeAll $
@@ -170,8 +194,8 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
 eventHook' _ = return (All True)
 
 
-keys' = [ ("M-S-q", spawn "gnome-session-quit")
-        , ("M-S-l", spawn "gnome-screensaver-command -l")
+keys' = [-- ("M-S-q", spawn "gnome-session-quit")
+         ("M-S-l", spawn "gnome-screensaver-command -l")
 
         , ("M-<U>", nextHiddenWS)
         , ("M-<D>", prevHiddenWS)

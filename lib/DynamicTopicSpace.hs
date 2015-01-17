@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module DynamicTopicSpace
     ( Topic(..)
+    , defaultTopic
     , fromList
     , dynamicTopicsConfig
     , defaultConfig
@@ -44,14 +45,16 @@ import Data.Maybe (mapMaybe, isJust, fromMaybe, fromJust)
 import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
-    { topicDir :: Maybe FilePath
-    , topicAction :: Maybe (X ())
-    , topicWindows :: Maybe (Query Bool)
+    { topicDir :: FilePath
+    , topicAction :: WorkspaceId -> X ()
+    , topicWindows :: Query Bool
     }
 
+defaultTopic = Topic "" (const $ return ()) (return False)
+
 data StoredTopic = StoredTopic
-    { storedTopicDir :: Maybe FilePath
-    , storedTopicAction :: Maybe (X ())
+    { storedTopicDir :: FilePath
+    , storedTopicAction :: WorkspaceId -> X ()
     }
 storeTopic t = StoredTopic (topicDir t) (topicAction t)
 
@@ -68,8 +71,7 @@ data TopicConfig = TopicConfig
 
 defaultConfig = TopicConfig M.empty []
 
-fromList l =
-    let topics = map (\(n,d,a) -> (n, Topic d a Nothing)) l in
+fromList topics =
     TopicConfig
         { topics = M.fromList $ map (second storeTopic) topics
         , topicNames = map fst topics
@@ -89,11 +91,15 @@ dynamicTopicsConfig tc conf = conf
     where
         hasWindows = isJust . S.stack
 
+stringToMaybe :: String -> Maybe String
+stringToMaybe s = if null s
+        then Nothing
+        else Just s
 
 makeTopicConfig :: TopicStorage -> TS.TopicConfig
 makeTopicConfig (TopicStorage topics) = TS.defaultTopicConfig
-    { TS.topicDirs = M.mapMaybe storedTopicDir topics
-    , TS.topicActions = M.mapMaybe storedTopicAction topics
+    { TS.topicDirs = M.mapMaybe (stringToMaybe . storedTopicDir) topics
+    , TS.topicActions = M.mapWithKey (flip storedTopicAction) topics
     -- , TS.defaultTopic = fromMaybe "1" $ Safe.headMay (topicNames tc)
     , TS.defaultTopicAction = const $ return ()
     }
