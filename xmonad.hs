@@ -72,12 +72,6 @@ numpadKeys (XConfig {modMask = modm}) = Data.Map.fromList
             , xK_KP_Insert] -- 0
 
 
-runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
-runOnByClass prog classNames wk = do
-    manageNext query (doF $ S.shift wk)
-    spawn prog
-    where query = foldl1 (<||>) (map (className =?) classNames)
-
 
 topicConfig = DTS.fromList $
     [ ("main",      Nothing,                      Nothing)
@@ -224,9 +218,37 @@ swapScreens = do
 
 
 
+runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
+runOnByClass prog classNames wk = nextToWorkspaceByClass classNames wk >> spawn prog
+
+nextToWorkspaceByClass :: [String] -> WorkspaceId -> X ()
+nextToWorkspaceByClass classNames wk =
+    manageNext query (doF $ S.shift wk)
+    where query = foldl1 (<||>) (map (className =?) classNames)
+
+spawnLocalIShellCmdOn :: WorkspaceId -> String -> X ()
+spawnLocalIShellCmdOn wk c = do
+    nextToWorkspaceByClass ["Gnome-Terminal"] wk
+    spawnLocalIShellCmd c
+
 spawnLocalShell = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
 -- spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
+
+spawnLocalIShellCmd c = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= (\d -> spawnShellCmd d c True)
+spawnShellCmd :: FilePath -> String -> Bool -> X ()
+spawnShellCmd dir cmd interactive = spawn $
+    "gnome-terminal" ++
+        (if null dir then ""
+                     else " --working-directory=\"" ++ dir ++ "\"") ++
+        (if null cmd
+         then ""
+         else if not interactive
+              then " -- " ++ cmd
+              else " -- zsh -c '" ++ cmd ++ "; zsh'")
+
+spawnShellIn "" = spawn "gnome-terminal"
 spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
+spawnIShellInCmd dir cmd = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\" -- zsh -c '" ++ cmd ++ "; zsh'"
 spawnFilemanager = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnFilemanagerIn
 spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
 
