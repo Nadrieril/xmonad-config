@@ -20,7 +20,17 @@ import XMonad
     , XConfig(..)
     , ExtensionClass(..)
     , WorkspaceId
+
+    , ManageHook
     , Query
+    , liftX
+    , (<+>)
+    , composeAll
+    , (-->)
+    , doF
+    , doShift
+    , idHook
+
     , spawn
     , workspaces
     , asks
@@ -39,7 +49,7 @@ import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, 
 import Data.Typeable (Typeable)
 import qualified Data.Map as M
 import qualified Safe
-import Control.Monad (liftM, unless, when, forM_)
+import Control.Monad (liftM, liftM2, unless, when, forM_)
 import Data.List (find, partition)
 import Data.Maybe (mapMaybe, isJust, fromMaybe, fromJust)
 import Control.Arrow (second)
@@ -67,15 +77,24 @@ instance ExtensionClass TopicStorage where
 data TopicConfig = TopicConfig
     { topics :: M.Map WorkspaceId StoredTopic
     , topicNames :: [WorkspaceId]
+    , topicHook :: ManageHook
     }
 
-defaultConfig = TopicConfig M.empty []
+defaultConfig = TopicConfig M.empty [] idHook
 
 fromList topics =
     TopicConfig
         { topics = M.fromList $ map (second storeTopic) topics
         , topicNames = map fst topics
+        , topicHook = composeAll
+               [q --> shiftToWk wk | (wk, q) <- map (second topicWindows) topics]
         }
+    where shiftToWk wk = do
+            isNew <- liftX $ gets (not . S.tagMember wk . windowset)
+            liftX $ addHiddenWorkspace wk
+            if isNew
+                then doF $ liftM2 (.) S.view S.shift wk
+                else doShift wk
 
 dynamicTopicsConfig tc conf = conf
     { startupHook = do
@@ -86,6 +105,7 @@ dynamicTopicsConfig tc conf = conf
         forM_ (map S.workspace $ S.current ws : S.visible ws)
             (\wk -> unless (hasWindows wk) $ TS.topicAction tstc (S.tag wk))
         startupHook conf
+    , manageHook = manageHook conf <+> topicHook tc
     , workspaces = topicNames tc
     }
     where

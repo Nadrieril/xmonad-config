@@ -72,17 +72,21 @@ numpadKeys (XConfig {modMask = modm}) = Data.Map.fromList
             , xK_KP_Insert] -- 0
 
 
+queryFromClasses :: [String] -> Query Bool
+queryFromClasses classNames = foldl1 (<||>) (map (className =?) classNames)
 topic = DTS.defaultTopic
 
 topicConfig = DTS.fromList $
     [ ("main", topic)
     , ("web", topic {
-        DTS.topicAction = flip spawnOn "google-chrome"
+        DTS.topicAction = flip spawnOn "google-chrome",
+        DTS.topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
     , ("game", topic)
     , ("video", topic {
         DTS.topicDir = "$HOME/Videos",
-        DTS.topicAction = const spawnFilemanager
+        DTS.topicAction = const spawnFilemanager,
+        DTS.topicWindows = queryFromClasses ["Vlc"]
     })
     ] ++
 
@@ -107,14 +111,18 @@ topicConfig = DTS.fromList $
         DTS.topicAction = flip spawnOn "icedove"
     })
     , ("git", topic {
-        DTS.topicAction = flip spawnOn "smartgithg"
+        DTS.topicAction = flip spawnOn "smartgithg",
+        DTS.topicWindows = queryFromClasses ["SmartGit/Hg"]
     })
     , ("irc", topic {
-        DTS.topicAction = flip spawnOn "quasselclient"
+        DTS.topicAction = flip spawnOn "quasselclient",
+        DTS.topicWindows = queryFromClasses ["quasselclient"]
+        -- <||> isInProperty "WM_NAME" "Quassel IRC"
     })
     , ("music", topic {
         DTS.topicDir = "$HOME/Music",
-        DTS.topicAction = flip spawnOn "rhythmbox"
+        DTS.topicAction = flip spawnOn "rhythmbox",
+        DTS.topicWindows = queryFromClasses ["Rhythmbox", "ario"]
     })
     , ("term", topic {
         DTS.topicAction = const spawnLocalShell
@@ -131,24 +139,10 @@ topicConfig = DTS.fromList $
 
 
 manageHook' = composeAll $
-       [appName  =? r --> doIgnore             |   r   <- _ignored]
-    ++ [className =? c --> doCenterFloat        |   c   <- _floating ]
-    ++ [className =? c --> viewShift wkspace
-            | (wkspace, classes) <- wkspaceByClass, c <- classes]
-    -- ++ [isInProperty "WM_NAME" "Quassel IRC" --> shift "irc"]
+       [appName  =? r --> doIgnore | r <- _ignored]
+    ++ [className =? c --> doCenterFloat | c <- _floating ]
 
     where
-        viewShift = doF . liftM2 (.) S.view S.shift
-        -- shift = doF . S.shift
-
-        wkspaceByClass =
-            [ ("web", ["Firefox","Google-chrome","Chromium","Chromium-browser"])
-            -- , ("dev", ["Atom"])
-            , ("git", ["SmartGit/Hg"])
-            , ("irc", ["quasselclient"])
-            , ("music", ["ario"])
-            ]
-
         _floating  = ["Xmessage","Nm-connection-editor"]
         _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
 
