@@ -21,6 +21,7 @@ import XMonad.Actions.CycleWS (nextScreen, prevScreen, shiftNextScreen, shiftPre
 import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
 import XMonad.Actions.SpawnOn (manageSpawn, spawnOn)
+import XMonad.Actions.Warp (warpToWindow)
 
 import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Shell
@@ -182,10 +183,10 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-<D>", prevHiddenWS)
         , ("M-S-<U>", shiftToNextHidden >> nextHiddenWS)
         , ("M-S-<D>", shiftToPrevHidden >> prevHiddenWS)
-        , ("M-<R>", nextScreen)
-        , ("M-<L>", prevScreen)
-        , ("M-S-<R>", shiftNextScreen >> nextScreen)
-        , ("M-S-<L>", shiftPrevScreen >> prevScreen)
+        , ("M-<R>", nextScreen >> warpToWindow 1 1)
+        , ("M-<L>", prevScreen >> warpToWindow 1 1)
+        , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 1 1)
+        , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 1 1)
         , ("M-<Tab>", toggleWS)
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
         , ("M-S-w", do
