@@ -45,15 +45,14 @@ ptyWorkspaces pp sid = do
     xmonadDir <- getXMonadDir
     let sepBy sep = intercalate sep . filter (not . null)
     let visibles = map (S.tag . S.workspace) (S.current winset : S.visible winset)
-    let fmt w = wrapSwitch $ printer pp (S.tag w)
+    let fmt i w = wrapSwitch $ printer pp (show i ++ "." ++ S.tag w)
          where printer | any (\x -> maybe False (== S.tag w) (S.findTag x winset)) urgents = ppUrgent
                        | S.tag w == S.tag (S.workspace scr) = ppCurrent
                        | S.tag w `elem` visibles = ppVisible
                        | isJust (S.stack w) = ppHidden
                        | otherwise = ppHiddenNoWindows
 
-               i = elemIndex (S.tag w) all_workspaces
-               wrapSwitch s = case (s, i) of
+               wrapSwitch s = case (s, elemIndex (S.tag w) all_workspaces) of
                     ("", _) -> ""
                     (_, Nothing) -> s
                     (s, Just i) -> wrapEvtActions xmonadDir s
@@ -62,7 +61,7 @@ ptyWorkspaces pp sid = do
                         , ("3", ("SHIFTWKSP", show n)) ]
                         where n = 10 * fromIntegral i + fromIntegral sid
 
-    let ret = sepBy (ppWsSep pp) . map fmt . sort' $ S.workspaces winset
+    let ret = sepBy (ppWsSep pp) . zipWith fmt [(1::Int)..] . sort' $ S.workspaces winset
     return $ wrapEvtActions xmonadDir ret
         [ ("4", ("PREVWKSP", show $ fromIntegral sid))
         , ("5", ("NEXTWKSP", show $ fromIntegral sid)) ]
