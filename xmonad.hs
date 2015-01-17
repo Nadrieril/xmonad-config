@@ -188,6 +188,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 1 1)
         , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 1 1)
         , ("M-<Tab>", toggleWS)
+        , ("M-S-<Tab>", swapScreens)
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
         , ("M-S-w", do
             wk <- gets (S.currentTag . windowset)
@@ -215,6 +216,11 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("<XF86AudioNext>", spawn "mpc next")
         ]
 
+swapScreens = do
+    visible <- gets (S.visible . windowset)
+    case visible of
+        [] -> return ()
+        s:_ -> windows $ S.greedyView (S.tag $ S.workspace s)
 
 
 
