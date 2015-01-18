@@ -201,7 +201,9 @@ keys' = [-- ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 1 1)
         , ("M-<Tab>", toggleWS)
         , ("M-S-<Tab>", swapScreens)
+
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
+        , ("M-M1-w", DTS.currentTopicAction)
         , ("M-S-w", do
             wk <- gets (S.currentTag . windowset)
             DTS.clearWorkspace wk

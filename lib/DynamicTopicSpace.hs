@@ -8,6 +8,7 @@ module DynamicTopicSpace
     , makeTopicConfig
 
     , goto
+    , currentTopicAction
     , topicPrompt
     , topicGridSelect
     , clearWorkspace
@@ -124,11 +125,14 @@ makeTopicConfig (TopicStorage topics) = TS.defaultTopicConfig
     , TS.defaultTopicAction = const $ return ()
     }
 
-
+goto :: WorkspaceId -> X ()
 goto w = do
     addHiddenWorkspace w
     tc <- XS.gets makeTopicConfig
     TS.switchTopic tc w
+
+currentTopicAction :: X ()
+currentTopicAction = XS.gets makeTopicConfig >>= TS.currentTopicAction
 
 
 topicPrompt :: X (Maybe WorkspaceId)
