@@ -149,12 +149,14 @@ manageHook' = composeAll $
 
 layoutHook' = maximize $
         onWorkspaces ["term"] (doubletiled ||| full ||| tiled) $
-        onWorkspaces ["dev/b-a", "dev/b-d"] (full ||| topbar ||| tiled) $
+        onWorkspaces ["dev/b-a"] (topbar ||| full) $
+        onWorkspaces ["dev/b-d"] (topbar2 ||| full) $
         full ||| tiled
     where
         full = noBorders simpleTabbed
         tiled = smartBorders (Tall 1 (3/100) (1/2))
         topbar = smartBorders (Mirror $ Tall 1 (3/100) (7/100))
+        topbar2 = smartBorders (Mirror $ Tall 2 (3/100) (7/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
