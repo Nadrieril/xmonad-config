@@ -26,8 +26,8 @@ import XMonad.Actions.Warp (warpToWindow)
 import qualified XMonad.Actions.Search as Search
 
 import XMonad.Prompt (defaultXPConfig)
-import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh (sshPrompt)
+import XMonad.Prompt.Man (manPrompt)
 
 import Control.Monad (liftM2, when, forM_)
 import qualified Data.Map
@@ -233,6 +233,7 @@ keys' = [-- ("M-S-q", spawn "gnome-session-quit")
         , ("M-s", sshPrompt defaultXPConfig)
         , ("M-p", spawn "exec $(yeganesh -x)")
         , ("M-x", spawn "exec $(yeganesh -x)")
+        , ("M-f m", manPrompt defaultXPConfig)
         ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
             where searchList :: [(String, Search.SearchEngine)]
                   searchList = [ ("g", Search.google)
