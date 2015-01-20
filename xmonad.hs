@@ -12,7 +12,7 @@ import XMonad.Layout.PerWorkspace (onWorkspace, onWorkspaces)
 import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.Maximize (maximize, maximizeRestore)
 
-import XMonad.Hooks.ManageHelpers (doCenterFloat)
+import XMonad.Hooks.ManageHelpers (doCenterFloat, isInProperty)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
 
 import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(..))
@@ -33,7 +33,7 @@ import Control.Monad (liftM2, when, forM_)
 import qualified Data.Map
 import Data.List (delete, nub, partition, find)
 import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
-import Data.Monoid (All(..))
+import Data.Monoid (All(..), mconcat)
 import Safe (headMay)
 ------------------------------------------------------
 import XMobar
@@ -50,7 +50,13 @@ main = xmonad
           modMask = mod4Mask
         , terminal = "gnome-terminal.wrapper"
         , layoutHook = layoutHook'
-        , manageHook = manageManageNext <+> manageSpawn <+> placeHook simpleSmart <+> manageHook gnomeConfig <+> manageHook'
+        -- , logHook = updatePointer (Relative 0.9 0.9)
+        , manageHook = mconcat
+            [ manageManageNext
+            , manageSpawn
+            , placeHook simpleSmart
+            , manageHook gnomeConfig
+            , manageHook' ]
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
@@ -79,11 +85,11 @@ queryFromClasses classNames = foldl1 (<||>) (map (className =?) classNames)
 topic = DTS.defaultTopic
 
 topicConfig = DTS.fromList $
-    [ ("main", topic)
-    , ("web", topic {
+    [ ("web", topic {
         DTS.topicAction = flip spawnOn "google-chrome",
         DTS.topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
+    , ("main", topic)
     , ("game", topic)
     , ("video", topic {
         DTS.topicDir = "$HOME/Videos",
@@ -117,9 +123,10 @@ topicConfig = DTS.fromList $
         DTS.topicWindows = queryFromClasses ["SmartGit/Hg"]
     })
     , ("irc", topic {
-        DTS.topicAction = flip spawnOn "quasselclient",
-        DTS.topicWindows = queryFromClasses ["quasselclient"]
-        -- <||> isInProperty "WM_NAME" "Quassel IRC"
+        DTS.topicAction = flip spawnOn "quasselclient"
+        -- DTS.topicWindows = queryFromClasses ["quasselclient"]
+        --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
+        --     <||> isInProperty "WM_COMMAND" "quasselclient"
     })
     , ("music", topic {
         DTS.topicDir = "$HOME/Music",
@@ -139,16 +146,6 @@ topicConfig = DTS.fromList $
             where classes = ["Atom"]
 
 
-
-manageHook' = composeAll $
-       [appName  =? r --> doIgnore | r <- _ignored]
-    ++ [className =? c --> doCenterFloat | c <- _floating ]
-
-    where
-        _floating  = ["Xmessage","Nm-connection-editor"]
-        _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
-
-
 layoutHook' = maximize $
         onWorkspaces ["term"] (doubletiled ||| full ||| tiled) $
         onWorkspaces ["dev/b-a"] (topbar ||| full) $
@@ -161,6 +158,15 @@ layoutHook' = maximize $
         topbar2 = smartBorders (Mirror $ Tall 2 (3/100) (7/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
+
+
+manageHook' = composeAll $
+       [appName  =? r --> doIgnore | r <- _ignored]
+    ++ [className =? c --> doCenterFloat | c <- _floating ]
+
+    where
+        _floating  = ["Xmessage","Nm-connection-editor"]
+        _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
 
 
 eventHook' :: Event -> X All
@@ -192,17 +198,17 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
 eventHook' _ = return (All True)
 
 
-keys' = [-- ("M-S-q", spawn "gnome-session-quit")
-         ("M-S-l", spawn "gnome-screensaver-command -l")
+keys' = [ ("M-S-q", spawn "gnome-session-quit")
+        , ("M-S-l", spawn "gnome-screensaver-command -l")
 
         , ("M-<U>", nextHiddenWS)
         , ("M-<D>", prevHiddenWS)
         , ("M-S-<U>", shiftToNextHidden >> nextHiddenWS)
         , ("M-S-<D>", shiftToPrevHidden >> prevHiddenWS)
-        , ("M-<R>", nextScreen >> warpToWindow 1 1)
-        , ("M-<L>", prevScreen >> warpToWindow 1 1)
-        , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 1 1)
-        , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 1 1)
+        , ("M-<R>", nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-<L>", prevScreen >> warpToWindow 0.9 0.9)
+        , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 0.9 0.9)
         , ("M-<Tab>", toggleWS)
         , ("M-S-<Tab>", swapScreens)
 
