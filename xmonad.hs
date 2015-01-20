@@ -49,6 +49,7 @@ main = xmonad
     $ gnomeConfig {
           modMask = mod4Mask
         , terminal = "gnome-terminal.wrapper"
+        , startupHook = spawn "killall unclutter; unclutter"
         , layoutHook = layoutHook'
         -- , logHook = updatePointer (Relative 0.9 0.9)
         , manageHook = mconcat
