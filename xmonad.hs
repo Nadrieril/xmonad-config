@@ -22,6 +22,8 @@ import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
 import XMonad.Actions.SpawnOn (manageSpawn, spawnOn)
 import XMonad.Actions.Warp (warpToWindow)
+-- import XMonad.Actions.UpdateFocus (adjustEventInput, focusOnMouseMove)
+import qualified XMonad.Actions.Search as Search
 
 import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Shell
@@ -220,9 +222,6 @@ keys' = [-- ("M-S-q", spawn "gnome-session-quit")
         , ("M-c", kill)
         , ("M1-<F4>", kill)
 
-        , ("M-s", sshPrompt defaultXPConfig)
-        , ("M-p", spawn "exec $(yeganesh -x)")
-
         -- , ("<XF86AudioMute>", spawn "mpc volume 0")
         -- , ("<XF86AudioRaiseVolume>", spawn "mpc volume +2")
         -- , ("<XF86AudioLowerVolume>", spawn "mpc volume -2")
@@ -230,7 +229,20 @@ keys' = [-- ("M-S-q", spawn "gnome-session-quit")
         , ("<XF86AudioStop>", spawn "mpc stop")
         , ("<XF86AudioPrev>", spawn "mpc prev")
         , ("<XF86AudioNext>", spawn "mpc next")
-        ]
+
+        , ("M-s", sshPrompt defaultXPConfig)
+        , ("M-p", spawn "exec $(yeganesh -x)")
+        , ("M-x", spawn "exec $(yeganesh -x)")
+        ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
+            where searchList :: [(String, Search.SearchEngine)]
+                  searchList = [ ("g", Search.google)
+                               , ("w", Search.wikipedia)
+                               , ("a", Search.alpha)
+                               , ("d", Search.dictionary)
+                               , ("h", Search.hoogle)
+                               , ("y", Search.youtube)
+                               ]
+
 
 swapScreens = do
     visible <- gets (S.visible . windowset)
