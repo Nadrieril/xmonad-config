@@ -31,6 +31,7 @@ import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
 import Control.Monad (liftM2, when, forM_)
+import Control.Applicative ((<$>))
 import qualified Data.Map
 import Data.List (delete, nub, partition, find)
 import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
@@ -244,7 +245,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-s", sshPrompt defaultXPConfig)
         , ("M-p", spawn "exec $(yeganesh -x)")
         , ("M-x", spawn "exec $(yeganesh -x)")
-        , ("M-f m", manPrompt defaultXPConfig)
+        , ("M-f m", maximizeNext >> manPrompt defaultXPConfig)
         ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
             where searchList :: [(String, Search.SearchEngine)]
                   searchList = [ ("g", Search.google)
@@ -262,6 +263,11 @@ swapScreens = do
         [] -> return ()
         s:_ -> windows $ S.greedyView (S.tag $ S.workspace s)
 
+maximizeNext :: X ()
+maximizeNext = manageNext (return True) $ ask >>= \w -> do
+    liftX $ S.workspace . S.current <$> gets windowset
+        >>= sendMessageWithNoRefresh (maximizeRestore w)
+    idHook
 
 
 runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
