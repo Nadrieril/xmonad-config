@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module XMobar.XMobar (XMobar(..), killXMobar, spawnXMobar, XMobarConfig(..)) where
+module XMonad.Util.XMobar.XMobar (XMobar(..), killXMobar, spawnXMobar, XMobarConfig(..)) where
 
 import XMonad
 
@@ -14,7 +14,7 @@ import qualified System.Directory
 import Control.Monad (when, forM, forM_)
 import Data.List (intercalate)
 
-import qualified XMobar.Property as Property (Property)
+import qualified XMonad.Util.XMobar.Property as Property (Property)
 ------------------------------------------------------
 
 data XMobarConfig = XMobarConfig {

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module DynamicTopicSpace
+module XMonad.Actions.DynamicTopicSpace
     ( Topic(..)
     , defaultTopic
     , fromList

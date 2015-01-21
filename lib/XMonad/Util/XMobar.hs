@@ -1,4 +1,4 @@
-module XMobar (customXMobar, defaultXmConfig) where
+module XMonad.Util.XMobar (customXMobar, defaultXmConfig) where
 
 import XMonad
 
@@ -18,8 +18,8 @@ import Control.Monad (when, forM_)
 import System.IO (Handle, writeFile, readFile)
 -- import System.Posix.Types (ProcessID)
 
-import qualified XMobar.Property as XMProperty
-import XMobar.XMobar
+import qualified XMonad.Util.XMobar.Property as XMProperty
+import XMonad.Util.XMobar.XMobar
 ------------------------------------------------------
 
 defaultXmConfig = XMobarConfig

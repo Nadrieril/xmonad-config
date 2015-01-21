@@ -38,10 +38,11 @@ import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
 import Data.Monoid (All(..), mconcat)
 import Safe (headMay)
 ------------------------------------------------------
-import XMobar
-import DocksFullscreen
-import qualified DynamicTopicSpace as DTS
-import ManageNext (manageNext, manageManageNext)
+-- Custom libs
+import XMonad.Util.XMobar
+import XMonad.Hooks.DocksFullscreen
+import qualified XMonad.Actions.DynamicTopicSpace as DTS
+import XMonad.Hooks.ManageNext (manageNext, manageManageNext)
 ------------------------------------------------------
 
 main = xmonad

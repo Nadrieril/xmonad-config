@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module ManageNext (manageNext, manageManageNext) where
+module XMonad.Hooks.ManageNext (manageNext, manageManageNext) where
 
 import XMonad
 import qualified XMonad.Util.ExtensibleState as XS

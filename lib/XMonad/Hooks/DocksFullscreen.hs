@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 
-module DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
+module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
 
 import XMonad
 
