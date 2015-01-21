@@ -30,7 +30,7 @@ import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
-import Control.Monad (liftM2, when, forM_)
+import Control.Monad (liftM2, when, forM_, void)
 import Control.Applicative ((<$>))
 import qualified Data.Map
 import Data.List (delete, nub, partition, find)
@@ -116,6 +116,7 @@ topicConfig = DTS.fromList $
             spawnLocalIShellCmd "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
             spawnLocalShell)
         , ("psc", "PSC", return ())
+        , ("24h", "24hnatation", return ())
         ]
     ++
     [ ("backup", topic {
@@ -250,6 +251,7 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-x", spawn "exec $(yeganesh -x)")
         , ("M-f m", maximizeNext >> manPrompt defaultXPConfig)
         ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
+          ++ [("M-S-f " ++ k, Search.selectSearchBrowser "google-chrome" f) | (k,f) <- searchList]
             where searchList :: [(String, Search.SearchEngine)]
                   searchList = [ ("g", Search.google)
                                , ("w", Search.wikipedia)
