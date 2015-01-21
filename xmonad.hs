@@ -111,7 +111,10 @@ topicConfig = DTS.fromList $
     ] ++ projecttopics
         [ ("xm",  "xmonad", return ())
         , ("b-a", "bars-angular", spawnLocalIShellCmd "grunt serve")
-        , ("b-d", "bars-django", spawnLocalIShellCmd "python manage.py runserver_plus" >> spawnLocalShell)
+        , ("b-d", "bars-django", do
+            spawnLocalIShellCmd "python manage.py runserver_plus"
+            spawnLocalIShellCmd "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
+            spawnLocalShell)
         , ("psc", "PSC", return ())
         ]
     ++
