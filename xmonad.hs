@@ -243,7 +243,9 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("<XF86AudioRaiseVolume>", void $ raiseVolume 2)
         , ("<XF86AudioLowerVolume>", void $ lowerVolume 2)
         , ("<XF86AudioPlay>", spawn "rhythmbox-client --play-pause")
-        , ("<XF86AudioStop>", spawn "rhythmbox-client --stop")
+        , ("<XF86AudioStop>", spawn $
+                "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
+                "notify-send \"$(getsong %tt)\" \"by $(getsong %ta) from $(getsong %at)\"")
         , ("<XF86AudioPrev>", spawn "rhythmbox-client --previous")
         , ("<XF86AudioNext>", spawn "rhythmbox-client --next")
 
