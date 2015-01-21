@@ -20,17 +20,23 @@ manageNext q mh = XS.modify (\(QueryStorage l) -> QueryStorage $ l ++ [(q, mh)])
 
 manageManageNext :: ManageHook
 manageManageNext = ask >>= \w -> liftX $ do
-    QueryStorage nexts <- XS.get
-    (mh, newl) <- handle w nexts
-    XS.put $ QueryStorage newl
+    QueryStorage qs <- XS.get
+    (mh, newqs) <- handle w qs
+    XS.put $ QueryStorage newqs
     runQuery mh w
     where
         handle :: Window -> [NextQuery] -> X (ManageHook, [NextQuery])
-        handle w ((q, mh):t) = do
-            match <- runQuery q w
-            if match
-                then return (mh, t)
-                else do
-                    (mh, rest) <- handle w t
-                    return (mh, (q, mh):rest)
-        handle w [] = return (mempty, [])
+        handle w qs = do
+            (ret, newqs) <- extractM (\(q, _) -> runQuery q w) qs
+            return (maybe mempty snd ret, newqs)
+
+
+extractM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a, [a])
+extractM f [] = return (Nothing, [])
+extractM f (x:q) = do
+    match <- f x
+    if match
+        then return (Just x, q)
+        else do
+            (mb, q') <- extractM f q
+            return (mb, x:q')
