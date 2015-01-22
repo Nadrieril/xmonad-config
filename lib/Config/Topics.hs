@@ -75,7 +75,7 @@ topicConfig = DTS.fromList $
     , ("term", topic {
         DTS.topicAction = const spawnLocalTerminal
     })
-    ] ++ [ (show i, topic) | i <- [0..5] ]
+    ] ++ [ ([i], topic) | i <- ['0'..'5'] ]
     where projecttopics l = do
             (n, p, a) <- l
             return ("dev/"++n, topic {
