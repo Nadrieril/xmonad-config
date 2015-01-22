@@ -20,9 +20,10 @@ executable xmonad
         , containers
         , directory
         , unix
+        , mtl
 
         , xmonad
         , xmonad-contrib
         , xmonad-extras
 
-    ghc-options: -Wall
+    ghc-options: -Wall -fno-warn-missing-signatures -fno-warn-name-shadowing
