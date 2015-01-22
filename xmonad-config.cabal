@@ -1,0 +1,28 @@
+cabal-version:  >= 1.6
+build-type:     Simple
+name:           xmonad-config
+version:        0.0.1
+author:         Nadrieril
+
+executable xmonad
+    hs-source-dirs: ., lib
+    main-is:       xmonad.hs
+    other-modules:
+          Config.Topics
+        , XMonad.Actions.DynamicTopicSpace
+        , XMonad.Hooks.DocksFullscreen
+        , XMonad.Hooks.ManageNext
+        , XMonad.Util.XMobar
+
+    build-depends:
+          base
+        , safe
+        , containers
+        , directory
+        , unix
+
+        , xmonad
+        , xmonad-contrib
+        , xmonad-extras
+
+    ghc-options: -Wall

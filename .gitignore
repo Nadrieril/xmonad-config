@@ -2,3 +2,4 @@
 *.o
 /.conky_dzen
 /.xmonad
+/dist/
