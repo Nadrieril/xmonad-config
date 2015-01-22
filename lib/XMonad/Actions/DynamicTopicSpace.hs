@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module XMonad.Actions.DynamicTopicSpace
     ( Topic(..)
+    , TopicConfig
     , defaultTopic
     , fromList
     , dynamicTopicsConfig
@@ -9,6 +10,7 @@ module XMonad.Actions.DynamicTopicSpace
 
     , goto
     , currentTopicAction
+    , currentTopicDir
     , topicPrompt
     , topicGridSelect
     , clearWorkspace
@@ -133,6 +135,9 @@ goto w = do
 
 currentTopicAction :: X ()
 currentTopicAction = XS.gets makeTopicConfig >>= TS.currentTopicAction
+
+currentTopicDir :: X FilePath
+currentTopicDir = XS.gets makeTopicConfig >>= TS.currentTopicDir
 
 
 topicPrompt :: X (Maybe WorkspaceId)

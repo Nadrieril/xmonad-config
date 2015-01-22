@@ -1,10 +1,15 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module XMonad.Hooks.ManageNext (manageNext, manageManageNext) where
+module XMonad.Hooks.ManageNext
+    ( manageNext
+    , manageManageNext
+    , queryFromClasses
+    , nextToWorkspace
+    , nextToWorkspaceByClass
+    ) where
 
 import XMonad
+import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
-
-import Data.Monoid (mempty)
 ------------------------------------------------------
 type NextQuery = (Query Bool, ManageHook)
 
@@ -28,7 +33,7 @@ manageManageNext = ask >>= \w -> liftX $ do
         handle :: Window -> [NextQuery] -> X (ManageHook, [NextQuery])
         handle w qs = do
             (ret, newqs) <- extractM (\(q, _) -> runQuery q w) qs
-            return (maybe mempty snd ret, newqs)
+            return (maybe idHook snd ret, newqs)
 
 
 extractM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a, [a])
@@ -40,3 +45,13 @@ extractM f (x:q) = do
         else do
             (mb, q') <- extractM f q
             return (mb, x:q')
+
+
+queryFromClasses :: [String] -> Query Bool
+queryFromClasses classNames = foldl1 (<||>) (map (className =?) classNames)
+
+nextToWorkspace :: WorkspaceId -> Query Bool -> X ()
+nextToWorkspace wk q = manageNext q (doF $ W.shift wk)
+
+nextToWorkspaceByClass :: [String] -> WorkspaceId -> X ()
+nextToWorkspaceByClass classNames wk = nextToWorkspace wk (queryFromClasses classNames)
