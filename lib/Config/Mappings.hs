@@ -5,7 +5,6 @@ import qualified XMonad.StackSet as S
 import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Util.EZConfig (mkKeymap)
-import XMonad.Config.Azerty (azertyKeys)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isInProperty)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
@@ -17,7 +16,6 @@ import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(..))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS (nextScreen, prevScreen, shiftNextScreen, shiftPrevScreen, toggleWS, findWorkspace, WSType(..), Direction1D(..))
 import qualified XMonad.Actions.TopicSpace as TS
-import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
 import XMonad.Actions.SpawnOn (manageSpawn, spawnOn)
 import XMonad.Actions.Warp (warpToWindow)
 -- import XMonad.Actions.UpdateFocus (adjustEventInput, focusOnMouseMove)
@@ -40,8 +38,9 @@ import XMonad.Util.XMobar
 import XMonad.Hooks.DocksFullscreen
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageNext, manageManageNext)
+import XMonad.Util.Keys (azertyKeys, numpadKeys)
 ------------------------------------------------------
-keyMappings = azertyKeys' <+> azertyKeys <+> numpadKeys <+> flip mkKeymap keys'
+keyMappings = azertyKeys <+> numpadKeys <+> flip mkKeymap keys'
 
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
@@ -55,10 +54,6 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-C-<Tab>", nextScreen >> warpToWindow 0.9 0.9)
         , ("M-C-S-<Tab>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
         , ("M-M1-<Tab>", swapScreens)
-        -- , ("M-<R>", nextScreen >> warpToWindow 0.9 0.9)
-        -- , ("M-<L>", prevScreen >> warpToWindow 0.9 0.9)
-        -- , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
-        -- , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 0.9 0.9)
 
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
         , ("M-M1-w", DTS.currentTopicAction)
@@ -101,21 +96,6 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
                                , ("y", Search.youtube)
                                ]
 
-
-azertyKeys' (XConfig {modMask = modm}) = Data.Map.fromList
-    [((m .|. modm, k), withNthWorkspace f i)
-        | (i, k) <- zip [0..] [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0],
-          (f, m) <- [(S.greedyView, 0), (liftM2 (.) S.view S.shift, shiftMask)]]
-
-numpadKeys (XConfig {modMask = modm}) = Data.Map.fromList
-    [((m .|. modm, k), withNthWorkspace f i)
-        | (i, k) <- zip [0..] numpadKeys_,
-          (f, m) <- [(S.greedyView, 0), (liftM2 (.) S.view S.shift, shiftMask)]]
-    where numpadKeys_ =
-            [ xK_KP_End,  xK_KP_Down,  xK_KP_Page_Down -- 1, 2, 3
-            , xK_KP_Left, xK_KP_Begin, xK_KP_Right     -- 4, 5, 6
-            , xK_KP_Home, xK_KP_Up,    xK_KP_Page_Up   -- 7, 8, 9
-            , xK_KP_Insert] -- 0
 
 
 
