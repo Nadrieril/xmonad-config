@@ -12,7 +12,7 @@ data Terminal = Terminal {
     }
 
 gnomeTerminal = Terminal {
-        terminalCmd = "gnome-terminal-wrapper",
+        terminalCmd = "gnome-terminal.wrapper",
         terminalClasses = ["Gnome-Terminal"],
         spawnTerminal = spawnTerminal
     }
