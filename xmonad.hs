@@ -42,21 +42,22 @@ import XMonad.Hooks.DocksFullscreen
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageNext, manageManageNext)
 
-import Config.Topics (topicConfig, layout)
-import Config.Mappings (keyMappings, mouseMappings)
+import qualified Config.Common as Cfg (terminalCmd)
+import Config.Common (prevHiddenWS, nextHiddenWS)
+import qualified Config.Topics as Cfg (topicConfig, layout)
+import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
 
 main = xmonad
     $ docksFullscreenConfig
     $ customXMobar defaultXmConfig
-    $ DTS.dynamicTopicsConfig topicConfig
+    $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ gnomeConfig {
           modMask = mod4Mask
-        , terminal = "gnome-terminal.wrapper"
+        , terminal = Cfg.terminalCmd
         , startupHook = spawn "killall unclutter; unclutter"
-        , layoutHook = layout
-        -- , logHook = updatePointer (Relative 0.9 0.9)
-        , manageHook = mconcat
+        , layoutHook = Cfg.layout
+        , manageHook = composeAll
             [ manageManageNext
             , manageSpawn
             , placeHook simpleSmart
@@ -65,9 +66,9 @@ main = xmonad
         , handleEventHook = eventHook'
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
-        , mouseBindings = mouseMappings
-        , keys = keyMappings <+> keys defaultConfig
-        }
+        , mouseBindings = Cfg.mouseMappings
+        , keys = Cfg.keyMappings
+    }
 
 
 
@@ -107,14 +108,3 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
             wks <- gets (S.workspaces . windowset)
             return $ isNothing $ S.stack =<< find ((==wk) . S.tag) wks
 eventHook' _ = return (All True)
-
-
-hiddenWsBy = findWorkspace getSortByIndex Next HiddenWS
-
-prevHiddenWS = switchHiddenWorkspace (-1)
-nextHiddenWS = switchHiddenWorkspace 1
-switchHiddenWorkspace d = windows . S.view =<< hiddenWsBy d
-
-shiftToPrevHidden = shiftHiddenWorkspace (-1)
-shiftToNextHidden = shiftHiddenWorkspace 1
-shiftHiddenWorkspace d = windows . S.shift =<< hiddenWsBy d

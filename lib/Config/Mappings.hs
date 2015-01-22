@@ -39,6 +39,7 @@ import XMonad.Hooks.DocksFullscreen
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageNext, manageManageNext)
 import XMonad.Util.Keys (azertyKeys, numpadKeys)
+import Config.Common
 ------------------------------------------------------
 keyMappings = azertyKeys <+> numpadKeys <+> flip mkKeymap keys'
 
@@ -127,50 +128,3 @@ maximizeNext = manageNext (return True) $ ask >>= \w -> do
     liftX $ S.workspace . S.current <$> gets windowset
         >>= sendMessageWithNoRefresh (maximizeRestore w)
     idHook
-
-
-runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
-runOnByClass prog classNames wk = nextToWorkspaceByClass classNames wk >> spawn prog
-
-nextToWorkspaceByClass :: [String] -> WorkspaceId -> X ()
-nextToWorkspaceByClass classNames wk =
-    manageNext query (doF $ S.shift wk)
-    where query = foldl1 (<||>) (map (className =?) classNames)
-
-spawnLocalIShellCmdOn :: WorkspaceId -> String -> X ()
-spawnLocalIShellCmdOn wk c = do
-    nextToWorkspaceByClass ["Gnome-Terminal"] wk
-    spawnLocalIShellCmd c
-
-spawnLocalShell = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnShellIn
--- spawnShellIn dir = spawn $ "xterm -e 'cd \"" ++ dir ++ "\" && $SHELL'"
-
-spawnLocalIShellCmd c = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= (\d -> spawnShellCmd d c True)
-spawnShellCmd :: FilePath -> String -> Bool -> X ()
-spawnShellCmd dir cmd interactive = spawn $
-    "gnome-terminal" ++
-        (if null dir then ""
-                     else " --working-directory=\"" ++ dir ++ "\"") ++
-        (if null cmd
-         then ""
-         else if not interactive
-              then " -- " ++ cmd
-              else " -- zsh -c '" ++ cmd ++ "; zsh'")
-
-spawnShellIn "" = spawn "gnome-terminal"
-spawnShellIn dir = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\""
-spawnIShellInCmd dir cmd = spawn $ "gnome-terminal --working-directory=\"" ++ dir ++ "\" -- zsh -c '" ++ cmd ++ "; zsh'"
-spawnFilemanager = XS.gets DTS.makeTopicConfig >>= TS.currentTopicDir >>= spawnFilemanagerIn
-spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
-
-
-
-hiddenWsBy = findWorkspace getSortByIndex Next HiddenWS
-
-prevHiddenWS = switchHiddenWorkspace (-1)
-nextHiddenWS = switchHiddenWorkspace 1
-switchHiddenWorkspace d = windows . S.view =<< hiddenWsBy d
-
-shiftToPrevHidden = shiftHiddenWorkspace (-1)
-shiftToNextHidden = shiftHiddenWorkspace 1
-shiftHiddenWorkspace d = windows . S.shift =<< hiddenWsBy d

@@ -14,7 +14,7 @@ import XMonad.Layout.Maximize (maximize)
 -- Custom libs
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageNext, queryFromClasses, nextToWorkspaceByClass)
-import XMonad.Util.Terminal (terminalClasses, spawnTerminal, gnomeTerminal)
+import Config.Common
 ------------------------------------------------------
 topic = DTS.defaultTopic
 
@@ -98,17 +98,3 @@ layout = maximize $
         topbar2 = smartBorders (Mirror $ Tall 2 (3/100) (7/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
-
-
-------------------------------------------------------
-runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
-runOnByClass prog classNames wk = nextToWorkspaceByClass classNames wk >> spawn prog
-
-spawnLocalTerminal = spawnLocalITerminal ""
-spawnLocalITerminal c = DTS.currentTopicDir >>= (\d -> spawnTerminal gnomeTerminal d c True)
-spawnLocalITerminalOn wk c = do
-    nextToWorkspaceByClass (terminalClasses gnomeTerminal) wk
-    spawnLocalITerminal c
-
-spawnFilemanager = DTS.currentTopicDir >>= spawnFilemanagerIn
-spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
