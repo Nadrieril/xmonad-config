@@ -18,7 +18,7 @@ module XMonad.Actions.DynamicTopicSpace
     ) where
 
 import XMonad
-    ( X(..)
+    ( X
     , XConf(..)
     , XConfig(..)
     , ExtensionClass(..)
@@ -34,7 +34,6 @@ import XMonad
     , doShift
     , idHook
 
-    , spawn
     , workspaces
     , asks
     , gets
@@ -52,9 +51,9 @@ import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, 
 import Data.Typeable (Typeable)
 import qualified Data.Map as M
 import qualified Safe
-import Control.Monad (liftM, liftM2, unless, when, forM_)
+import Control.Monad (liftM2, unless, forM_)
 import Data.List (find, partition)
-import Data.Maybe (mapMaybe, isJust, fromMaybe, fromJust)
+import Data.Maybe (isJust, fromMaybe)
 import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
@@ -154,7 +153,7 @@ topicGridSelect = do
         let cfg = (buildDefaultGSConfig colorizer) { gs_navigate = navNSearch }
         wks <- asks (workspaces . config)
         gridselect cfg (map (\a -> (a,a)) wks)
-    where colorizer wk active =
+    where colorizer _ active =
             if active
             then return ("#B0B0B0", "#000000")
             else return ("#808080", "#000000")
@@ -192,4 +191,4 @@ removeWorkspace w = windows $ \s ->
     in fromMaybe removed_from_hidden removed_from_visible
     where
         merge x y = S.differentiate (S.integrate' x ++ S.integrate' y)
-        hasTag w = (==w) . S.tag . S.workspace
+        hasTag w' = (==w') . S.tag . S.workspace

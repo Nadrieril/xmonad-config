@@ -2,52 +2,31 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 import XMonad
 import qualified XMonad.StackSet as S
-import qualified XMonad.Util.ExtensibleState as XS
 
-import XMonad.Util.EZConfig (additionalKeysP)
 import XMonad.Config.Gnome (gnomeConfig)
-import XMonad.Config.Azerty (azertyKeys)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isInProperty)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
 
-import XMonad.Layout.Maximize (maximizeRestore)
+import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(FocusNew))
+import XMonad.Actions.SpawnOn (manageSpawn)
 
-import XMonad.Actions.Volume (lowerVolume, raiseVolume, toggleMute)
-import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(..))
-import XMonad.Util.WorkspaceCompare (getSortByIndex)
-import XMonad.Actions.CycleWS (nextScreen, prevScreen, shiftNextScreen, shiftPrevScreen, toggleWS, findWorkspace, WSType(..), Direction1D(..))
-import qualified XMonad.Actions.TopicSpace as TS
-import XMonad.Actions.DynamicWorkspaces (withNthWorkspace)
-import XMonad.Actions.SpawnOn (manageSpawn, spawnOn)
-import XMonad.Actions.Warp (warpToWindow)
--- import XMonad.Actions.UpdateFocus (adjustEventInput, focusOnMouseMove)
-import qualified XMonad.Actions.Search as Search
-
-import XMonad.Prompt (defaultXPConfig)
-import XMonad.Prompt.Ssh (sshPrompt)
-import XMonad.Prompt.Man (manPrompt)
-
-import Control.Monad (liftM2, when, forM_, void)
-import Control.Applicative ((<$>))
-import qualified Data.Map
-import Data.List (delete, nub, partition, find)
-import Data.Maybe (fromJust, listToMaybe, maybeToList, isNothing, isJust, maybe)
-import Data.Monoid (All(..), mconcat, mempty)
-import Safe (headMay)
+import Control.Monad (liftM2, when)
+import Data.List (find)
+import Data.Maybe (isNothing)
+import Data.Monoid (All(..))
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Util.XMobar
 import XMonad.Hooks.DocksFullscreen
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
-import XMonad.Hooks.ManageNext (manageNext, manageManageNext)
+import XMonad.Hooks.ManageNext (manageManageNext)
 
 import qualified Config.Common as Cfg (terminalCmd)
 import Config.Common (prevHiddenWS, nextHiddenWS)
 import qualified Config.Topics as Cfg (topicConfig, layout)
 import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
-
 main = xmonad
     $ docksFullscreenConfig
     $ customXMobar defaultXmConfig
@@ -63,13 +42,12 @@ main = xmonad
             , placeHook simpleSmart
             , manageHook gnomeConfig
             , manageHook' ]
-        , handleEventHook = eventHook'
+        , handleEventHook = eventHook
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         , mouseBindings = Cfg.mouseMappings
         , keys = Cfg.keyMappings
     }
-
 
 
 manageHook' = composeAll $
@@ -81,8 +59,8 @@ manageHook' = composeAll $
         _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
 
 
-eventHook' :: Event -> X All
-eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
+eventHook :: Event -> X All
+eventHook e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     all_workspaces <- asks (workspaces . config)
     let n = fromIntegral (head dt)
     let wk = all_workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
@@ -107,4 +85,4 @@ eventHook' e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
           isEmpty wk = do
             wks <- gets (S.workspaces . windowset)
             return $ isNothing $ S.stack =<< find ((==wk) . S.tag) wks
-eventHook' _ = return (All True)
+eventHook _ = return (All True)

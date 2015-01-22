@@ -3,11 +3,9 @@ module XMonad.Util.XMobar.XMobar (XMobar(..), killXMobar, spawnXMobar, XMobarCon
 
 import XMonad
 
-import qualified Data.Map as M
-import Data.Map ((!))
 import qualified XMonad.Util.ExtensibleState as State
-import System.IO (Handle, writeFile, readFile)
-import System.Posix.Types (ProcessID)
+import System.IO (writeFile, readFile)
+-- import System.Posix.Types (ProcessID)
 import qualified System.Posix.Files as Files
 import qualified System.Posix.Signals as Signals
 import qualified System.Directory

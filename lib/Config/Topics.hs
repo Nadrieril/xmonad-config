@@ -2,8 +2,7 @@
 module Config.Topics (topicConfig, layout) where
 
 import XMonad
-import qualified XMonad.Util.ExtensibleState as XS
-import qualified XMonad.StackSet as S
+
 import XMonad.Actions.SpawnOn (spawnOn)
 
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
@@ -13,7 +12,7 @@ import XMonad.Layout.Maximize (maximize)
 ------------------------------------------------------
 -- Custom libs
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
-import XMonad.Hooks.ManageNext (manageNext, queryFromClasses, nextToWorkspaceByClass)
+import XMonad.Hooks.ManageNext (queryFromClasses)
 import Config.Common
 ------------------------------------------------------
 topic = DTS.defaultTopic
@@ -83,7 +82,6 @@ topicConfig = DTS.fromList $
                 DTS.topicAction = \wk -> runOnByClass ("atom ~/projects/"++p) classes wk >> a
             })
             where classes = ["Atom"]
-
 
 
 layout = maximize $

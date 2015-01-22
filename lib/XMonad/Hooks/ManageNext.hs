@@ -37,7 +37,7 @@ manageManageNext = ask >>= \w -> liftX $ do
 
 
 extractM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a, [a])
-extractM f [] = return (Nothing, [])
+extractM _ [] = return (Nothing, [])
 extractM f (x:q) = do
     match <- f x
     if match

@@ -1,19 +1,20 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances, PatternGuards #-}
 
 module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
 
 import XMonad
+import qualified XMonad.StackSet as W (focus, stack)
 
 import qualified XMonad.Layout.Fullscreen as FS
-import qualified XMonad.StackSet as W (focus, stack)
-import Control.Monad (when)
+
 import XMonad.Hooks.ManageHelpers (isFullscreen)
 import XMonad.Hooks.ManageDocks (SetStruts(..), ToggleStruts(..), calcGap)
+
 import XMonad.Layout.Gaps (Direction2D(..))
 import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
+
 import qualified Data.Set as S
-
-
+------------------------------------------------------
 docksFullscreenConfig conf = conf
     { layoutHook = avoidStrutsUnlessFullscreen $ FS.fullscreenFocus $ layoutHook conf
     , manageHook = FS.fullscreenManageHook <+> manageHook conf

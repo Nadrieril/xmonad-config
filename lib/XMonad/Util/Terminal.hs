@@ -1,4 +1,4 @@
-module XMonad.Util.Terminal (terminalClasses, spawnTerminal, gnomeTerminal) where
+module XMonad.Util.Terminal (terminalCmd, terminalClasses, spawnTerminal, gnomeTerminal) where
 
 import XMonad (X, spawn)
 
@@ -14,9 +14,9 @@ data Terminal = Terminal {
 gnomeTerminal = Terminal {
         terminalCmd = "gnome-terminal.wrapper",
         terminalClasses = ["Gnome-Terminal"],
-        spawnTerminal = spawnTerminal
+        spawnTerminal = spawnTerminal'
     }
-    where spawnTerminal dir cmd i = spawn $ execWriter $ do
+    where spawnTerminal' dir cmd i = spawn $ execWriter $ do
             tell "gnome-terminal"
             unless (null dir) $ tell $ " --working-directory=\"" ++ dir ++ "\""
             unless (null cmd) $ do

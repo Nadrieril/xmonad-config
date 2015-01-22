@@ -5,17 +5,10 @@ import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Hooks.ManageDocks (manageDocks, avoidStruts, docksEventHook)
 import XMonad.Hooks.DynamicLog (PP(..), xmobarPP, xmobarColor, wrap, shorten)
-import XMonad.Util.NamedWindows (getName)
-import XMonad.Hooks.UrgencyHook (readUrgents)
-import Data.Maybe (isJust, fromJust)
-import Data.List (intercalate, find, elemIndex)
 
-import qualified System.Posix.Files as Files
-import qualified System.Posix.Signals as Signals
-import qualified System.Directory
-import Control.Monad (when, forM_)
+import Control.Monad (forM_)
 
-import System.IO (Handle, writeFile, readFile)
+import System.IO (writeFile)
 -- import System.Posix.Types (ProcessID)
 
 import qualified XMonad.Util.XMobar.Property as XMProperty
