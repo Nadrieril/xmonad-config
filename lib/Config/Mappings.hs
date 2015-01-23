@@ -17,7 +17,9 @@ import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
-import Control.Monad (void)
+import Control.Concurrent (forkIO)
+import System.IO (appendFile)
+import Control.Monad (void, (>=>))
 import Control.Applicative ((<$>))
 import qualified Data.Map
 ------------------------------------------------------
@@ -27,8 +29,9 @@ import XMonad.Hooks.ManageNext (manageNext)
 import XMonad.Util.Keys (azertyKeys, numpadKeys)
 import Config.Common
 ------------------------------------------------------
-keyMappings = azertyKeys <+> numpadKeys <+> flip mkKeymap keys' <+> keys defaultConfig
+keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys <+> defaultKeys)
 
+keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 keys' = [ ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
 
@@ -86,7 +89,8 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
 
 
 
-mouseMappings (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
+mouseMappings (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList $
+    map (\(m, x) -> (m, x >=> const (logMapping m)))
     [ ((modMask, button1), mouseMoveWindow)
     , ((modMask, button2), killWindow)
     , ((modMask, button3), mouseResizeWindow)
@@ -113,3 +117,10 @@ maximizeNext = manageNext (return True) $ ask >>= \w -> do
     liftX $ W.workspace . W.current <$> gets windowset
         >>= sendMessageWithNoRefresh (maximizeRestore w)
     idHook
+
+logMapping :: Show a => a -> X ()
+logMapping mapping = io $ void $ forkIO $
+    appendFile "/home/nadrieril/.xmonad/mappings.log" (show mapping ++ "\n")
+
+logMappings :: (XConfig l -> Data.Map.Map (KeyMask, KeySym) (X ())) -> XConfig l -> Data.Map.Map (KeyMask, KeySym) (X ())
+logMappings mappings cfg = Data.Map.mapWithKey (\k x -> x >> logMapping k) $ mappings cfg
