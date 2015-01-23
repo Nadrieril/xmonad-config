@@ -18,11 +18,14 @@ terminalCmd = Terminal.terminalCmd terminal
 runOnByClass :: FilePath -> [String] -> WorkspaceId -> X ()
 runOnByClass prog classNames wk = nextToWorkspaceByClass classNames wk >> spawn prog
 
-spawnLocalTerminal = spawnLocalITerminal ""
-spawnLocalITerminal c = DTS.currentTopicDir >>= (\d -> spawnTerminal terminal d c True)
-spawnLocalITerminalOn wk c = do
+spawnLocalTerminal_ c i = DTS.currentTopicDir >>= (\d -> spawnTerminal terminal d c i)
+
+spawnLocalTerminal c = spawnLocalTerminal_ c False
+spawnLocalShell = spawnLocalShellCmd ""
+spawnLocalShellCmd c = spawnLocalTerminal_ c True
+spawnLocalShellCmdOn wk c = do
     nextToWorkspaceByClass (terminalClasses terminal) wk
-    spawnLocalITerminal c
+    spawnLocalShellCmd c
 
 spawnFilemanager = DTS.currentTopicDir >>= spawnFilemanagerIn
 spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir

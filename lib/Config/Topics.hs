@@ -41,11 +41,11 @@ topicConfig = DTS.fromList $
     })
     ] ++ projecttopics
         [ ("xm",  "xmonad", return ())
-        , ("b-a", "bars-angular", spawnLocalITerminal "grunt serve")
+        , ("b-a", "bars-angular", spawnLocalShellCmd "grunt serve")
         , ("b-d", "bars-django", do
-            spawnLocalITerminal "python manage.py runserver_plus"
-            spawnLocalITerminal "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
-            spawnLocalTerminal)
+            spawnLocalShellCmd "python manage.py runserver_plus"
+            spawnLocalShellCmd "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
+            spawnLocalShell)
         , ("psc", "PSC", return ())
         , ("24h", "24hnatation", return ())
         ]
@@ -72,7 +72,7 @@ topicConfig = DTS.fromList $
         DTS.topicWindows = queryFromClasses ["Rhythmbox", "ario"]
     })
     , ("term", topic {
-        DTS.topicAction = const spawnLocalTerminal
+        DTS.topicAction = const spawnLocalShell
     })
     ] ++ [ ([i], topic) | i <- ['0'..'5'] ]
     where projecttopics l = do
