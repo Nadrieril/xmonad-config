@@ -20,7 +20,7 @@ gnomeTerminal = Terminal {
             tell "gnome-terminal"
             unless (null dir) $ tell $ " --working-directory=\"" ++ dir ++ "\""
             unless (null cmd) $ do
-                tell " --"
+                tell " -- "
                 tell $ if i
                     then "$SHELL -c '" ++ cmd ++ "; $SHELL'"
                     else cmd
