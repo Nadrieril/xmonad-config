@@ -29,56 +29,20 @@ import XMonad.Hooks.ManageNext (manageNext)
 import XMonad.Util.Keys (azertyKeys, numpadKeys)
 import Config.Common
 ------------------------------------------------------
-keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys <+> defaultKeys)
+keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys)
 
 keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 
-defaultKeys conf@(XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
-    [ ((modMask,               xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
-    , ((modMask .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf) -- %!  Reset the layouts on the current workspace to default
-
-    , ((modMask,               xK_n     ), refresh) -- %! Resize viewed windows to the correct size
-
-    -- move focus up or down the window stack
-    , ((modMask,               xK_j     ), windows W.focusDown) -- %! Move focus to the next window
-    , ((modMask,               xK_k     ), windows W.focusUp  ) -- %! Move focus to the previous window
-    , ((modMask,               xK_m     ), windows W.focusMaster  ) -- %! Move focus to the master window
-
-    -- modifying the window order
-    , ((modMask,               xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
-    , ((modMask .|. shiftMask, xK_j     ), windows W.swapDown  ) -- %! Swap the focused window with the next window
-    , ((modMask .|. shiftMask, xK_k     ), windows W.swapUp    ) -- %! Swap the focused window with the previous window
-
-    -- resizing the master/slave ratio
-    , ((modMask,               xK_h     ), sendMessage Shrink) -- %! Shrink the master area
-    , ((modMask,               xK_l     ), sendMessage Expand) -- %! Expand the master area
-
-    -- floating layer support
-    , ((modMask,               xK_t     ), withFocused $ windows . W.sink) -- %! Push window back into tiling
-
-    -- quit, or restart
-    , ((modMask              , xK_q     ), spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi") -- %! Restart xmonad
-    ]
-
-keys' = [ ("M-S-q", spawn "gnome-session-quit")
+keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
+        , ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
 
-        -- Window navigation
-        , ("M1-<Tab>", windows W.focusDown)
-        , ("M1-S-<Tab>", windows W.focusUp)
-        , ("M-j", windows W.focusDown)
-        , ("M-k", windows W.focusUp)
-        , ("M-m", windows W.focusMaster)
-        , ("M-S-j", windows W.swapDown)
-        , ("M-S-k", windows W.swapUp)
-        , ("M-S-m", windows W.swapMaster)
 
-        , ("M-,", sendMessage (IncMasterN 1))
-        , ("M-;", sendMessage (IncMasterN (-1)))
+        -- Screen navigation
+        , ("M-C-<Tab>", nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-C-S-<Tab>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-M1-<Tab>", swapScreens)
 
-        , ("M-<Esc>", withFocused (sendMessage . maximizeRestore))
-        , ("M-c", kill)
-        , ("M1-<F4>", kill)
 
         -- Workspace navigation
         , ("M-<U>", nextHiddenWS)
@@ -90,8 +54,8 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
             w <- gets $ W.peek . windowset
             toggleWS
             wk <- gets $ W.currentTag . windowset
-            maybe (return ()) (windows . W.shiftWin wk) w
-            )
+            maybe (return ()) (windows . W.shiftWin wk) w)
+
 
         -- Topics
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
@@ -101,10 +65,30 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
             DTS.clearWorkspace wk
             DTS.removeWorkspace wk)
 
-        -- Screen navigation
-        , ("M-C-<Tab>", nextScreen >> warpToWindow 0.9 0.9)
-        , ("M-C-S-<Tab>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
-        , ("M-M1-<Tab>", swapScreens)
+
+        -- Layout
+        , ("M-,", sendMessage (IncMasterN 1))
+        , ("M-;", sendMessage (IncMasterN (-1)))
+        , ("M-<Space>", sendMessage NextLayout)
+        , ("M-h", sendMessage Shrink)
+        , ("M-l", sendMessage Expand)
+
+
+        -- Window navigation
+        , ("M1-<Tab>", windows W.focusDown)
+        , ("M1-S-<Tab>", windows W.focusUp)
+        , ("M-j", windows W.focusDown)
+        , ("M-k", windows W.focusUp)
+        , ("M-m", windows W.focusMaster)
+        , ("M-S-j", windows W.swapDown)
+        , ("M-S-k", windows W.swapUp)
+        , ("M-S-m", windows W.swapMaster)
+
+        , ("M-<Esc>", withFocused (sendMessage . maximizeRestore))
+        , ("M-t", withFocused $ windows . W.sink)
+        , ("M-c", kill)
+        , ("M1-<F4>", kill)
+
 
         -- Apps
         , ("M1-C-t", spawnLocalShell)
@@ -138,8 +122,6 @@ keys' = [ ("M-S-q", spawn "gnome-session-quit")
                                , ("h", Search.hoogle)
                                , ("y", Search.youtube)
                                ]
-
-
 
 
 mouseMappings (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList $
