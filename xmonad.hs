@@ -5,7 +5,7 @@ import qualified XMonad.StackSet as S
 
 import XMonad.Config.Gnome (gnomeConfig)
 
-import XMonad.Hooks.ManageHelpers (doCenterFloat, isInProperty)
+import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
 
 import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(FocusNew))
@@ -60,7 +60,7 @@ manageHook' = composeAll $
 
 
 eventHook :: Event -> X All
-eventHook e@ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
+eventHook ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     all_workspaces <- asks (workspaces . config)
     let n = fromIntegral (head dt)
     let wk = all_workspaces !! (n `div` 10) -- arbitrary limit to 10 screens

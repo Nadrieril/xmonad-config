@@ -18,7 +18,6 @@ import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
 import Control.Concurrent (forkIO)
-import System.IO (appendFile)
 import Control.Monad (void, (>=>))
 import Control.Applicative ((<$>))
 import qualified Data.Map

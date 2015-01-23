@@ -4,7 +4,6 @@ module XMonad.Util.XMobar.XMobar (XMobar(..), killXMobar, spawnXMobar, XMobarCon
 import XMonad
 
 import qualified XMonad.Util.ExtensibleState as State
-import System.IO (writeFile, readFile)
 -- import System.Posix.Types (ProcessID)
 import qualified System.Posix.Files as Files
 import qualified System.Posix.Signals as Signals

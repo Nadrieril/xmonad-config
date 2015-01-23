@@ -6,11 +6,9 @@ import qualified XMonad.StackSet as S
 import XMonad.Hooks.ManageDocks (manageDocks, avoidStruts, docksEventHook)
 import XMonad.Hooks.DynamicLog (PP(..), xmobarPP, xmobarColor, wrap, shorten)
 
-import Control.Monad (forM_)
-
-import System.IO (writeFile)
 -- import System.Posix.Types (ProcessID)
-
+import Control.Monad (forM_)
+------------------------------------------------------
 import qualified XMonad.Util.XMobar.Property as XMProperty
 import XMonad.Util.XMobar.XMobar
 ------------------------------------------------------
@@ -40,10 +38,10 @@ customXMobar xmconf conf = conf
                     _         -> "0"
 
     update_screen_focused_window_title scr = do
-        let S.Screen wksp sid _ = scr
+        -- let S.Screen wksp sid _ = scr
         let i = screen_id scr
         let dir = "/tmp/xmobar/"++i
-        ws <- gets windowset
+        -- ws <- gets windowset
 
         let writePropertyToPipe (name, p) = do
             value <- p (S.screen scr)
