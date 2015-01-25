@@ -24,8 +24,8 @@ import XMonad.Hooks.DocksFullscreen (docksFullscreenConfig)
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageManageNext)
 
-import qualified Config.Common as Cfg (terminalCmd)
 import Config.Common (prevHiddenWS, nextHiddenWS)
+import qualified Config.Common as Cfg (terminalCmd)
 import qualified Config.Topics as Cfg (topicConfig, layout)
 import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------

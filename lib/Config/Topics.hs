@@ -7,6 +7,7 @@ import XMonad.Actions.SpawnOn (spawnOn)
 
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.Tabbed (simpleTabbed)
+import XMonad.Layout.Reflect (reflectVert)
 -- import XMonad.Layout.Maximize (maximize)
 ------------------------------------------------------
 -- Custom libs
@@ -50,10 +51,10 @@ topicConfig = fromList $
         , ("b-d", topic {
             topicDir = "bars-django",
             topicAction = const $ do
-                spawnLocalShellCmd "python manage.py runserver_plus"
-                spawnLocalShellCmd "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
-                spawnLocalShell,
-            topicLayout = Just $ Layout $ topbar2 ||| full
+                spawnLocalTerminal "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
+                spawnLocalShell
+                spawnLocalShellCmd "python manage.py runserver_plus",
+            topicLayout = Just $ Layout $ topbar ||| full
         })
         , ("psc", topic {
             topicDir = "PSC"
@@ -99,8 +100,7 @@ topicConfig = fromList $
 
         full = noBorders simpleTabbed
         tiled = smartBorders (Tall 1 (3/100) (1/2))
-        topbar = smartBorders (Mirror $ Tall 1 (3/100) (7/100))
-        topbar2 = smartBorders (Mirror $ Tall 2 (3/100) (7/100))
+        topbar = smartBorders (reflectVert $ Mirror $ Tall 1 (3/100) (93/100))
         doubletiled = smartBorders (Tall 2 (3/100) (1/2))
         -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
 
