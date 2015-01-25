@@ -11,6 +11,8 @@ import XMonad.Hooks.Place (placeHook, simpleSmart)
 import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(FocusNew))
 import XMonad.Actions.SpawnOn (manageSpawn)
 
+import XMonad.Layout.Maximize (maximize)
+
 import Control.Monad (liftM2, when)
 import Data.List (find)
 import Data.Maybe (isNothing)
@@ -18,7 +20,7 @@ import Data.Monoid (All(..))
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Util.XMobar
-import XMonad.Hooks.DocksFullscreen
+import XMonad.Hooks.DocksFullscreen (docksFullscreenConfig)
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageManageNext)
 
@@ -30,6 +32,7 @@ import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 main = xmonad'
     $ docksFullscreenConfig'
     $ customXMobar defaultXmConfig
+    $ maximizeConfig'
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ gnomeConfig {
           modMask = mod4Mask
@@ -51,6 +54,12 @@ main = xmonad'
 
 
 xmonad' conf@XConfig{layoutHook = Layout a} = xmonad conf {layoutHook = a}
+
+wrapLayout conf@XConfig{layoutHook = a} = conf{layoutHook = Layout a}
+maximizeConfig' conf@XConfig{layoutHook = Layout a} = conf {layoutHook = Layout $ maximize a}
+docksFullscreenConfig' conf@XConfig{layoutHook = Layout a} = wrapLayout $ docksFullscreenConfig conf{layoutHook = a}
+
+
 
 manageHook' = composeAll $
        [appName  =? r --> doIgnore | r <- _ignored]

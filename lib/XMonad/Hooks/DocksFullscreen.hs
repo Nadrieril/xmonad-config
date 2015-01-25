@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances, PatternGuards #-}
 
-module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, docksFullscreenConfig', avoidStrutsUnlessFullscreen) where
+module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
 
 import XMonad
 import qualified XMonad.StackSet as W (focus, stack)
@@ -21,8 +21,6 @@ docksFullscreenConfig conf = conf
     , handleEventHook = FS.fullscreenEventHook <+> handleEventHook conf
     }
 
-wrapLayout conf@XConfig{layoutHook = a} = conf{layoutHook = Layout a}
-docksFullscreenConfig' conf@XConfig{layoutHook = Layout a} = wrapLayout $ docksFullscreenConfig conf{layoutHook = a}
 
 avoidStrutsUnlessFullscreen = ModifiedLayout $ AvoidStrutsUnlessFullscreen $ S.fromList [U,D,L,R]
 data AvoidStrutsUnlessFullscreen a = AvoidStrutsUnlessFullscreen (S.Set Direction2D)
