@@ -20,7 +20,6 @@ module XMonad.Actions.DynamicTopicSpace
 
 import XMonad hiding (defaultConfig)
 
-import XMonad.Operations (killWindow)
 import qualified XMonad.Util.ExtensibleState as XS
 import qualified XMonad.StackSet as S
 import qualified XMonad.Actions.TopicSpace as TS
@@ -29,7 +28,6 @@ import XMonad.Util.Dmenu (dmenu)
 import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, GSConfig(..))
 import XMonad.Layout.PerWorkspace (onWorkspace)
 
-import Data.Typeable (Typeable)
 import qualified Data.Map as M
 import qualified Safe
 import Control.Monad (liftM2, unless, forM_)
@@ -38,10 +36,10 @@ import Data.Maybe (isJust, fromMaybe, fromJust)
 import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
-    { topicDir :: FilePath
-    , topicAction :: WorkspaceId -> X ()
-    , topicWindows :: Query Bool
-    , topicLayout :: Maybe (Layout Window)
+    { topicDir :: FilePath  -- Topic related directory
+    , topicAction :: WorkspaceId -> X ()  -- Action to launch when creating topic
+    , topicWindows :: Query Bool  -- Windows related to topic; will get moved to the topic when spawned, creating the topic if necessary
+    , topicLayout :: Maybe (Layout Window)  -- Nothing for default layout, Just l for per-topic layout
     }
 
 defaultTopic = Topic "" (const $ return ()) (return False) Nothing
@@ -67,7 +65,7 @@ fromList topics =
         , topicsNames = map fst topics
         , topicsManageHook = composeAll
                [q --> shiftToWk wk | (wk, q) <- map (second topicWindows) topics]
-        , topicsLayout = \l -> foldr (\(ws,Layout lay) (Layout z) -> Layout (onWorkspace ws lay z)) l layoutsMap
+        , topicsLayout = \l -> foldr (\(ws, Layout lay) (Layout z) -> Layout (onWorkspace ws lay z)) l layoutsMap
         }
     where
         layoutsMap :: [(WorkspaceId, Layout Window)]
@@ -181,7 +179,6 @@ data TopicStorage = TopicStorage (M.Map WorkspaceId StoredTopic)
 
 instance ExtensionClass TopicStorage where
     initialValue = TopicStorage M.empty
-
 
 
 makeTopicConfig :: TopicStorage -> TS.TopicConfig
