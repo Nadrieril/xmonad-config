@@ -27,8 +27,8 @@ import Config.Common (prevHiddenWS, nextHiddenWS)
 import qualified Config.Topics as Cfg (topicConfig, layout)
 import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
-main = xmonad
-    $ docksFullscreenConfig
+main = xmonad'
+    $ docksFullscreenConfig'
     $ customXMobar defaultXmConfig
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ gnomeConfig {
@@ -49,6 +49,8 @@ main = xmonad
         , keys = Cfg.keyMappings
     }
 
+
+xmonad' conf@XConfig{layoutHook = Layout a} = xmonad conf {layoutHook = a}
 
 manageHook' = composeAll $
        [appName  =? r --> doIgnore | r <- _ignored]

@@ -20,8 +20,8 @@ defaultXmConfig = XMobarConfig
     }
 
 customXMobar xmconf conf = conf
-        { layoutHook = avoidStruts (layoutHook conf)
-        , logHook = do
+        { --layoutHook = avoidStruts (layoutHook conf),
+          logHook = do
             logHook conf
             ws <- gets windowset
             forM_ (S.screens ws) update_screen_focused_window_title

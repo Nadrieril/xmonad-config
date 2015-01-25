@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts #-}
 module XMonad.Actions.DynamicTopicSpace
     ( Topic(..)
     , TopicConfig
@@ -17,28 +17,7 @@ module XMonad.Actions.DynamicTopicSpace
     , removeWorkspace
     ) where
 
-import XMonad
-    ( X
-    , XConf(..)
-    , XConfig(..)
-    , ExtensionClass(..)
-    , WorkspaceId
-
-    , ManageHook
-    , Query
-    , liftX
-    , (<+>)
-    , composeAll
-    , (-->)
-    , doF
-    , doShift
-    , idHook
-
-    , workspaces
-    , asks
-    , gets
-    , windowset
-    , windows)
+import XMonad hiding (defaultConfig)
 
 import XMonad.Operations (killWindow)
 import qualified XMonad.Util.ExtensibleState as XS
@@ -47,22 +26,24 @@ import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Util.Dmenu (dmenu)
 import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, GSConfig(..))
+import XMonad.Layout.PerWorkspace (onWorkspace)
 
 import Data.Typeable (Typeable)
 import qualified Data.Map as M
 import qualified Safe
 import Control.Monad (liftM2, unless, forM_)
 import Data.List (find, partition)
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (isJust, fromMaybe, fromJust)
 import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
     { topicDir :: FilePath
     , topicAction :: WorkspaceId -> X ()
     , topicWindows :: Query Bool
+    , topicLayout :: Maybe (Layout Window)
     }
 
-defaultTopic = Topic "" (const $ return ()) (return False)
+defaultTopic = Topic "" (const $ return ()) (return False) Nothing
 
 data StoredTopic = StoredTopic
     { storedTopicDir :: FilePath
@@ -80,24 +61,35 @@ data TopicConfig = TopicConfig
     { topics :: M.Map WorkspaceId StoredTopic
     , topicNames :: [WorkspaceId]
     , topicHook :: ManageHook
+    , topicsLayout :: Layout Window -> Layout Window
     }
 
 defaultConfig = TopicConfig M.empty [] idHook
 
+
+fromList :: [(WorkspaceId, Topic)] -> TopicConfig
 fromList topics =
     TopicConfig
         { topics = M.fromList $ map (second storeTopic) topics
         , topicNames = map fst topics
         , topicHook = composeAll
                [q --> shiftToWk wk | (wk, q) <- map (second topicWindows) topics]
+        , topicsLayout = \l -> foldr (\(ws,Layout lay) (Layout z) -> Layout (onWorkspace ws lay z)) l layoutsMap
         }
-    where shiftToWk wk = do
+    where
+        layoutsMap :: [(WorkspaceId, Layout Window)]
+        layoutsMap = map (second (fromJust . topicLayout)) $ filter (\(_, t) -> isJust $ topicLayout t) topics
+
+        shiftToWk :: WorkspaceId -> ManageHook
+        shiftToWk wk = do
             isNew <- liftX $ gets (not . S.tagMember wk . windowset)
             liftX $ addHiddenWorkspace wk
             if isNew
                 then doF $ liftM2 (.) S.view S.shift wk
                 else doShift wk
 
+
+dynamicTopicsConfig :: (Read (l Window), LayoutClass l Window) => TopicConfig -> XConfig l -> XConfig Layout
 dynamicTopicsConfig tc conf = conf
     { startupHook = do
         XS.put $ TopicStorage $ topics tc
@@ -107,6 +99,7 @@ dynamicTopicsConfig tc conf = conf
         forM_ (map S.workspace $ S.current ws : S.visible ws)
             (\wk -> unless (hasWindows wk) $ TS.topicAction tstc (S.tag wk))
         startupHook conf
+    , layoutHook = topicsLayout tc (Layout $ layoutHook conf)
     , manageHook = manageHook conf <+> topicHook tc
     , workspaces = topicNames tc
     }
