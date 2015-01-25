@@ -30,9 +30,10 @@ import XMonad.Layout.PerWorkspace (onWorkspace)
 
 import qualified Data.Map as M
 import qualified Safe
-import Control.Monad (liftM2, unless, forM_)
+import Control.Monad (liftM, liftM2, unless, forM, forM_)
 import Data.List (find, partition)
-import Data.Maybe (isJust, fromMaybe, fromJust)
+import Data.Maybe (isJust, fromMaybe, fromJust, catMaybes)
+import Data.Monoid (Endo(..))
 import Control.Arrow (second)
 ------------------------------------------------------
 data Topic = Topic
@@ -40,9 +41,10 @@ data Topic = Topic
     , topicAction :: WorkspaceId -> X ()  -- Action to launch when creating topic
     , topicWindows :: Query Bool  -- Windows related to topic; will get moved to the topic when spawned, creating the topic if necessary
     , topicLayout :: Maybe (Layout Window)  -- Nothing for default layout, Just l for per-topic layout
+    , topicHook :: ManageHook  -- Per-topic managehook
     }
 
-defaultTopic = Topic "" (const $ return ()) (return False) Nothing
+defaultTopic = Topic "" (const $ return ()) (return False) Nothing idHook
 
 withLayout :: (Read (l Window), LayoutClass l Window) => Topic -> l Window -> Topic
 withLayout t l = t {topicLayout = Just $ Layout l}
@@ -63,21 +65,35 @@ fromList topics =
     TopicConfig
         { topicsMap = M.fromList $ map (second storeTopic) topics
         , topicsNames = map fst topics
-        , topicsManageHook = composeAll
+        , topicsManageHook = composeAll . reverse $
                [q --> shiftToWk wk | (wk, q) <- map (second topicWindows) topics]
+            ++ [workspaceQuery $ map (second topicHook) topics]
         , topicsLayout = \l -> foldr (\(ws, Layout lay) (Layout z) -> Layout (onWorkspace ws lay z)) l layoutsMap
         }
     where
+        -- Execute the hook for the topic in which the window is
+        workspaceQuery :: [(WorkspaceId, ManageHook)] -> ManageHook
+        workspaceQuery l = ask >>= \w -> do
+            hooks <- forM l $ \(wk, hook) -> do
+                (Endo res) <- hook
+                return (wk, inWksp wk res)
+            doF $ \ws -> (fromMaybe id $ S.findTag w ws >>= flip lookup hooks) ws
+            where -- Execute hook in correct workspace
+                  inWksp :: WorkspaceId -> (WindowSet -> WindowSet) -> WindowSet -> WindowSet
+                  inWksp wk f ws =
+                    let crnt = S.tag . S.workspace . S.current $ ws
+                    in if crnt == wk
+                        then f ws
+                        else S.view crnt . f . S.view wk $ ws
+
         layoutsMap :: [(WorkspaceId, Layout Window)]
         layoutsMap = map (second (fromJust . topicLayout)) $ filter (\(_, t) -> isJust $ topicLayout t) topics
 
         shiftToWk :: WorkspaceId -> ManageHook
         shiftToWk wk = do
-            isNew <- liftX $ gets (not . S.tagMember wk . windowset)
+            -- isNew <- liftX $ gets (not . S.tagMember wk . windowset)
             liftX $ addHiddenWorkspace wk
-            if isNew
-                then doF $ liftM2 (.) S.view S.shift wk
-                else doShift wk
+            doF $ liftM2 (.) S.view S.shift wk
 
 
 dynamicTopicsConfig :: (Read (l Window), LayoutClass l Window) => TopicConfig -> XConfig l -> XConfig Layout
@@ -91,7 +107,7 @@ dynamicTopicsConfig tc conf = conf
             (\wk -> unless (hasWindows wk) $ TS.topicAction tstc (S.tag wk))
         startupHook conf
     , layoutHook = topicsLayout tc (Layout $ layoutHook conf)
-    , manageHook = manageHook conf <+> topicsManageHook tc
+    , manageHook = topicsManageHook tc <+> manageHook conf
     , workspaces = topicsNames tc
     }
     where
