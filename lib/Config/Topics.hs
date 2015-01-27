@@ -21,7 +21,7 @@ import Config.Common
 ------------------------------------------------------
 topic = defaultTopic
 devTopic = topic {
-          topicLayout = Just $ Layout $ topbar ||| full
+          topicLayout = Just $ Layout $ topbar ||| tiled ||| full
         , topicHook = (not <$> (isDialog <||> isAtom) --> doF avoidMaster)
                 <+> (isAtom --> doF W.swapMaster)
     }

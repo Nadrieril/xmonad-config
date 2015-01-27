@@ -108,7 +108,7 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
 
         -- Prompts
         , ("M-s", sshPrompt defaultXPConfig)
-        -- , ("M-p", spawn "exec $(yeganesh -x)")
+        , ("M-p", spawn "exec $(yeganesh -x)")
         , ("M-x", spawn "exec $(yeganesh -x)")
         , ("M-f m", maximizeNext >> manPrompt defaultXPConfig)
         ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
