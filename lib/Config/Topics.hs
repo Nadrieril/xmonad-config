@@ -73,6 +73,12 @@ topicConfig = fromList $
         , ("psc", devTopic {
             topicDir = "PSC"
         })
+        , ("cv", topic {
+            topicDir = "CV",
+            topicAction = const $ do
+                dir <- currentTopicDir
+                spawn $ "xdg-open " ++ dir ++ "/CV.pdf"
+        })
         , ("24h", devTopic {
             topicDir = "24hnatation",
             topicAction = const $ do
