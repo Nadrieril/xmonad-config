@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Config.Topics (topicConfig, layout) where
 
-import XMonad
+import XMonad hiding (terminal)
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.SpawnOn (spawnOn)
@@ -15,8 +15,9 @@ import XMonad.Layout.Reflect (reflectVert)
 import Control.Applicative ((<$>))
 ------------------------------------------------------
 -- Custom libs
-import XMonad.Actions.DynamicTopicSpace (Topic(..), fromList, defaultTopic)
-import XMonad.Hooks.ManageNext (queryFromClasses)
+import XMonad.Actions.DynamicTopicSpace (Topic(..), fromList, defaultTopic, currentTopicDir)
+import XMonad.Hooks.ManageNext (queryFromClasses, nextToWorkspaceByClass)
+import qualified XMonad.Util.Terminal as Terminal
 import Config.Common
 ------------------------------------------------------
 topic = defaultTopic
@@ -33,7 +34,9 @@ topicConfig = fromList $
         topicAction = flip spawnOn "google-chrome",
         topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
-    , ("main", topic)
+    , ("main", topic {
+        topicAction = const spawnLocalShell
+    })
     , ("game", topic)
     , ("video", topic {
         topicDir = "$HOME/Videos",
@@ -51,25 +54,31 @@ topicConfig = fromList $
         topicWindows = queryFromClasses ["Eclipse"]
     })
     ] ++ map projectTopic
-        [ ("xm", devTopic {
+        [ ("xm", topic {
             topicDir = "xmonad"
         })
         , ("b-a", devTopic {
             topicDir = "bars-angular",
-            topicAction = const $ spawnLocalShellCmd "grunt serve"
+            topicAction = \wk -> do
+                nextToWorkspaceByClass (Terminal.terminalClasses terminal) wk
+                spawnLocalShellCmd "grunt serve"
         })
         , ("b-d", devTopic {
             topicDir = "bars-django",
             topicAction = const $ do
-                spawnLocalShell
-                spawnLocalTerminal "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
                 spawnLocalShellCmd "python manage.py runserver_plus"
+                -- spawnLocalTerminal "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
+                spawnLocalShell
         })
         , ("psc", devTopic {
             topicDir = "PSC"
         })
         , ("24h", devTopic {
-            topicDir = "24hnatation"
+            topicDir = "24hnatation",
+            topicAction = const $ do
+                spawnLocalShellCmd "cd server && python manage.py runserver_plus"
+                spawnLocalShellCmd "cd client && grunt serve"
+                spawnLocalShell
         })
         ] ++
 
