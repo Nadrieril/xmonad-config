@@ -17,6 +17,7 @@ import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
+import Data.Maybe (fromJust)
 import Control.Concurrent (forkIO)
 import Control.Monad (void, (>=>))
 import Control.Applicative ((<$>))
@@ -76,11 +77,11 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         -- Window navigation
         , ("M1-<Tab>", windows W.focusDown)
         , ("M1-S-<Tab>", windows W.focusUp)
-        , ("M-j", windows W.focusDown)
-        , ("M-k", windows W.focusUp)
+        , ("M-j", windows W.focusUp)
+        , ("M-k", windows W.focusDown)
         , ("M-m", windows W.focusMaster)
-        , ("M-S-j", windows W.swapDown)
-        , ("M-S-k", windows W.swapUp)
+        , ("M-S-j", windows W.swapUp)
+        , ("M-S-k", windows W.swapDown)
         , ("M-S-m", windows W.swapMaster)
 
         , ("M-<Esc>", withFocused (sendMessage . maximizeRestore))
@@ -91,7 +92,8 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
 
         -- Apps
         , ("M1-C-t", spawnLocalShell)
-        , ("M-S-<Return>", spawnLocalShell)
+        , ("M-<Return>", maximizeNext >> spawnLocalShell)
+        , ("M-<KP_Enter>", fromJust $ lookup "M-<Return>" keys')
         , ("M-n", spawnFilemanager)
         , ("<XF86Calculator>", maximizeNext >> spawnLocalTerminal "ghci")
 
