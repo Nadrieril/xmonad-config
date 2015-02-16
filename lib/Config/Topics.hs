@@ -27,6 +27,10 @@ devTopic = topic {
                 <+> (isAtom --> doF W.swapMaster)
     }
     where isAtom = queryFromClasses ["Atom"]
+termTopic = topic {
+    topicAction = const spawnLocalShell,
+    topicLayout = Just $ Layout $ doubletiled ||| full ||| tiled
+}
 
 
 topicConfig = fromList $
@@ -34,8 +38,11 @@ topicConfig = fromList $
         topicAction = flip spawnOn "google-chrome",
         topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
-    , ("main", topic {
-        topicAction = const spawnLocalShell
+    , ("irc", topic {
+        topicAction = flip spawnOn "quasselclient"
+        -- topicWindows = queryFromClasses ["quasselclient"]
+        --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
+        --     <||> isInProperty "WM_COMMAND" "quasselclient"
     })
     , ("game", topic)
     , ("video", topic {
@@ -98,22 +105,14 @@ topicConfig = fromList $
         topicAction = flip spawnOn "smartgithg",
         topicWindows = queryFromClasses ["SmartGit/Hg"]
     })
-    , ("irc", topic {
-        topicAction = flip spawnOn "quasselclient"
-        -- topicWindows = queryFromClasses ["quasselclient"]
-        --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
-        --     <||> isInProperty "WM_COMMAND" "quasselclient"
-    })
     , ("music", topic {
         topicDir = "$HOME/Music",
         topicAction = flip spawnOn "rhythmbox",
         topicWindows = queryFromClasses ["Rhythmbox", "ario"]
     })
-    , ("term", topic {
-        topicAction = const spawnLocalShell,
-        topicLayout = Just $ Layout $ doubletiled ||| full ||| tiled
-    })] ++
-    [ ([i], topic) | i <- ['0'..'5'] ]
+    -- , ("term", termTopic)
+    ] ++
+    [ ([i], termTopic) | i <- ['0'..'5'] ]
 
     where
         projectTopic (w, t@Topic{topicDir = dir, topicAction = action}) =
