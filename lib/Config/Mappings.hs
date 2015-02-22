@@ -99,7 +99,7 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         , ("M-n", spawnFilemanager)
         , ("<XF86Calculator>", maximizeNext >> spawnLocalTerminal "ghci")
 
-        -- Audio
+        -- Media
         , ("<XF86AudioMute>", void toggleMute)
         , ("<XF86AudioRaiseVolume>", void $ raiseVolume 2)
         , ("<XF86AudioLowerVolume>", void $ lowerVolume 2)
@@ -109,6 +109,9 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
                 "notify-send \"$(getsong %tt)\" \"by $(getsong %ta) from $(getsong %at)\"")
         , ("<XF86AudioPrev>", spawn "rhythmbox-client --previous")
         , ("<XF86AudioNext>", spawn "rhythmbox-client --next")
+
+        , ("<XF86KbdBrightnessDown>", spawn "echo 0 | sudo tee /sys/class/leds/asus::kbd_backlight/brightness")
+        , ("<XF86KbdBrightnessUp>", spawn "cat /sys/class/leds/asus::kbd_backlight/max_brightness | sudo tee /sys/class/leds/asus::kbd_backlight/brightness")
 
         -- Prompts
         , ("M-s", sshPrompt defaultXPConfig)
