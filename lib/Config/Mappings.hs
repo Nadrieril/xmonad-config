@@ -101,8 +101,8 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
 
         -- Media
         , ("<XF86AudioMute>", void toggleMute)
-        , ("<XF86AudioRaiseVolume>", void $ raiseVolume 2)
-        , ("<XF86AudioLowerVolume>", void $ lowerVolume 2)
+        , ("<XF86AudioRaiseVolume>", void $ raiseVolume 5)
+        , ("<XF86AudioLowerVolume>", void $ lowerVolume 5)
         , ("<XF86AudioPlay>", spawn "rhythmbox-client --play-pause")
         , ("<XF86AudioStop>", spawn $
                 "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
