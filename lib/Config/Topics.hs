@@ -64,6 +64,10 @@ topicConfig = fromList $
         [ ("xm", topic {
             topicDir = "xmonad"
         })
+        , ("bars", devTopic {
+            topicDir = "bars",
+            topicAction = const spawnLocalShell
+        })
         , ("b-a", devTopic {
             topicDir = "bars-angular",
             topicAction = \wk -> do
