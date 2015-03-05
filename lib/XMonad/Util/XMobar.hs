@@ -51,7 +51,7 @@ customXMobar xmconf conf = conf
 
 customSBPP = xmobarPP
     { ppCurrent = xmobarColor "#429942" "" . wrap "<" ">"
-    , ppTitle = xmobarColor "green"  "" . shorten 100
+    , ppTitle = xmobarColor "green"  "" . wrap (replicate 20 ' ') (replicate 20 ' ') . shorten 100
     , ppHiddenNoWindows = xmobarColor "#6b6b6b" ""}
 
 
