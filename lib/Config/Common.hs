@@ -5,6 +5,7 @@ import XMonad hiding (terminal)
 import qualified XMonad.StackSet as W
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import XMonad.Actions.CycleWS (findWorkspace, WSType(HiddenWS), Direction1D(Next))
+import XMonad.Actions.CycleRecentWS (cycleWindowSets)
 ------------------------------------------------------
 -- Custom libs
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
@@ -40,3 +41,9 @@ switchHiddenWorkspace d = windows . W.view =<< hiddenWsBy d
 shiftToPrevHidden = shiftHiddenWorkspace (-1)
 shiftToNextHidden = shiftHiddenWorkspace 1
 shiftHiddenWorkspace d = windows . W.shift =<< hiddenWsBy d
+
+
+cycleRecentHiddenWS :: [KeySym] -> KeySym -> KeySym -> X ()
+cycleRecentHiddenWS = cycleWindowSets options
+    where options w = map (W.view `flip` w) (recentTags w)
+          recentTags w = map W.tag $ W.hidden w ++ [W.workspace $ W.current w]

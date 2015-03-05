@@ -10,7 +10,7 @@ import XMonad.Layout.Maximize (maximizeRestore)
 
 import XMonad.Actions.Volume (lowerVolume, raiseVolume, toggleMute)
 import XMonad.Actions.CycleWS (nextScreen, shiftNextScreen, toggleWS)
-import XMonad.Actions.CycleRecentWS (cycleRecentWS)
+-- import XMonad.Actions.CycleRecentWS (cycleRecentWS)
 import XMonad.Actions.Warp (warpToWindow)
 import qualified XMonad.Actions.Search as Search
 
@@ -51,7 +51,7 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         , ("M-S-<U>", shiftToNextHidden >> nextHiddenWS)
         , ("M-S-<D>", shiftToPrevHidden >> prevHiddenWS)
         -- , ("M-<Tab>", toggleWS)
-        , ("M-<Tab>", cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
+        , ("M-<Tab>", cycleRecentHiddenWS [xK_Super_L] xK_Tab xK_grave)
         , ("M-S-<Tab>", do
             w <- gets $ W.peek . windowset
             toggleWS
