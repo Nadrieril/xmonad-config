@@ -4,6 +4,7 @@ import XMonad
 import qualified XMonad.StackSet as S
 
 import XMonad.Config.Gnome (gnomeConfig)
+import System.Taffybar.Hooks.PagerHints (pagerHints)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
@@ -34,6 +35,7 @@ main = xmonad'
     $ customXMobar defaultXmConfig
     $ maximizeConfig'
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
+    $ pagerHints
     $ gnomeConfig {
           modMask = mod4Mask
         , terminal = Cfg.terminalCmd
