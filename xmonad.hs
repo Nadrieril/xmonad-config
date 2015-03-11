@@ -3,7 +3,8 @@
 import XMonad
 import qualified XMonad.StackSet as S
 
-import XMonad.Config.Gnome (gnomeConfig)
+import XMonad.Config.Desktop (desktopConfig)
+import XMonad.Config.Gnome (gnomeRegister)
 import System.Taffybar.Hooks.PagerHints (pagerHints)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
@@ -17,7 +18,7 @@ import XMonad.Layout.Maximize (maximize)
 import Control.Monad (liftM2, when)
 import Data.List (find, intersect)
 import Data.Maybe (isNothing)
-import Data.Monoid (All(..))
+import Data.Monoid (All(..), mappend)
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Util.XMobar
@@ -36,16 +37,16 @@ main = xmonad'
     $ maximizeConfig'
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ pagerHints
-    $ gnomeConfig {
+    $ desktopConfig {
           modMask = mod4Mask
         , terminal = Cfg.terminalCmd
-        , startupHook = spawn "killall unclutter; unclutter"
+        , startupHook = spawn "killall unclutter; unclutter" >> gnomeRegister
         , layoutHook = Cfg.layout
         , manageHook = composeAll
             [ manageManageNext
             , manageSpawn
             , placeHook simpleSmart
-            , manageHook gnomeConfig
+            , manageHook desktopConfig
             , manageHook' ]
         , handleEventHook = eventHook
         , normalBorderColor = "#000000"
