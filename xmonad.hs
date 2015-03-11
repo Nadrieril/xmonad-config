@@ -48,7 +48,7 @@ main = xmonad'
             , placeHook simpleSmart
             , manageHook desktopConfig
             , manageHook' ]
-        , handleEventHook = eventHook
+        , handleEventHook = handleEventHook desktopConfig `mappend` eventHook
         , normalBorderColor = "#000000"
         , focusedBorderColor = "#004080"
         , mouseBindings = Cfg.mouseMappings
