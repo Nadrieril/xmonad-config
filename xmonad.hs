@@ -14,7 +14,7 @@ import XMonad.Actions.SpawnOn (manageSpawn)
 import XMonad.Layout.Maximize (maximize)
 
 import Control.Monad (liftM2, when)
-import Data.List (find)
+import Data.List (find, intersect)
 import Data.Maybe (isNothing)
 import Data.Monoid (All(..))
 ------------------------------------------------------
@@ -72,9 +72,12 @@ manageHook' = composeAll $
 
 eventHook :: Event -> X All
 eventHook ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
+    ws <- gets windowset
     all_workspaces <- asks (workspaces . config)
+    let open_workspaces = map S.tag (S.workspaces ws)
+    let workspaces = all_workspaces `intersect` open_workspaces  -- keep order
     let n = fromIntegral (head dt)
-    let wk = all_workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
+    let wk = workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
     let scr = S $ n `mod` 10
 
     ifEvt "XMONAD_NEXTWKSP" $ onScreen' nextHiddenWS FocusNew scr

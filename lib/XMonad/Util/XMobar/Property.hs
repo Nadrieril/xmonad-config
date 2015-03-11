@@ -8,7 +8,7 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Hooks.UrgencyHook (readUrgents)
 
 import Data.Maybe (isJust, fromJust)
-import Data.List (intercalate, find, elemIndex)
+import Data.List (intercalate, find, elemIndex, intersect)
 ------------------------------------------------------
 type Property = ScreenId -> X String
 
@@ -39,30 +39,32 @@ ptyTitle pp sid = do
 ptyWorkspaces :: PP -> Property
 ptyWorkspaces pp sid = do
     sort' <- ppSort pp
-    winset <- gets windowset
+    ws <- gets windowset
     urgents <- readUrgents
     all_workspaces <- asks (workspaces . config)
+    let open_workspaces = map S.tag (S.workspaces ws)
+    let workspaces = all_workspaces `intersect` open_workspaces  -- keep order
     scr <- lookupScreen sid
     xmonadDir <- getXMonadDir
     let sepBy sep = intercalate sep . filter (not . null)
-    let visibles = map (S.tag . S.workspace) (S.current winset : S.visible winset)
+    let visibles = map (S.tag . S.workspace) (S.current ws : S.visible ws)
     let fmt i w = wrapSwitch $ printer pp (show i ++ "." ++ S.tag w)
-         where printer | any (\x -> maybe False (== S.tag w) (S.findTag x winset)) urgents = ppUrgent
+         where printer | any (\x -> maybe False (== S.tag w) (S.findTag x ws)) urgents = ppUrgent
                        | S.tag w == S.tag (S.workspace scr) = ppCurrent
                        | S.tag w `elem` visibles = ppVisible
                        | isJust (S.stack w) = ppHidden
                        | otherwise = ppHiddenNoWindows
 
-               wrapSwitch s = case (s, elemIndex (S.tag w) all_workspaces) of
-                    ("", _) -> ""
-                    (_, Nothing) -> s
-                    (s, Just i) -> wrapEvtActions xmonadDir s
+               wrapSwitch "" = ""
+               wrapSwitch s = case elemIndex (S.tag w) workspaces of
+                    Nothing -> s
+                    Just i -> wrapEvtActions xmonadDir s
                         [ ("1", ("SWITCHWKSP", show n))
                         , ("2", ("KILLWKSP", show n))
                         , ("3", ("SHIFTWKSP", show n)) ]
                         where n = 10 * fromIntegral i + fromIntegral sid :: Int
 
-    let ret = sepBy (ppWsSep pp) . zipWith fmt [(1::Int)..] . sort' $ S.workspaces winset
+    let ret = sepBy (ppWsSep pp) . zipWith fmt [(1::Int)..] . sort' $ S.workspaces ws
     let scrNb = fromIntegral sid :: Int
     return $ wrapEvtActions xmonadDir ret
         [ ("4", ("PREVWKSP", show scrNb))
