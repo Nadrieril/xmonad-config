@@ -62,7 +62,12 @@ topicConfig = fromList $
     })
     ] ++ map projectTopic
         [ ("xm", topic {
-            topicDir = "xmonad"
+            topicDir = "xmonad",
+            topicLayout = Just $ Layout $ full ||| topbar ||| tiled
+        })
+        , ("taffy", topic {
+            topicDir = "taffybar",
+            topicLayout = Just $ Layout $ full ||| topbar ||| tiled
         })
         , ("bars", devTopic {
             topicDir = "bars",
