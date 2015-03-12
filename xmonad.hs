@@ -37,7 +37,6 @@ import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
 main = xmonad'
     $ docksFullscreenConfig'
-    -- $ customXMobar defaultXmConfig
     $ maximizeConfig'
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ pagerHints
@@ -113,10 +112,10 @@ eventHook ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     let wk = workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
     let scr = S $ n `mod` 10
 
-    ifEvt "XMONAD_NEXTWKSP" $ onScreen' nextHiddenWS FocusNew scr
-    ifEvt "XMONAD_PREVWKSP" $ onScreen' prevHiddenWS FocusNew scr
-    ifEvt "XMONAD_SWITCHWKSP" $ windows $ onScreen (S.greedyView wk) FocusNew scr
-    ifEvt "XMONAD_SHIFTWKSP" $ windows $ onScreen (liftM2 (.) S.greedyView S.shift wk) FocusNew scr
+    -- ifEvt "XMONAD_NEXTWKSP" $ onScreen' nextHiddenWS FocusNew scr
+    -- ifEvt "XMONAD_PREVWKSP" $ onScreen' prevHiddenWS FocusNew scr
+    -- ifEvt "XMONAD_SWITCHWKSP" $ windows $ onScreen (S.greedyView wk) FocusNew scr
+    -- ifEvt "XMONAD_SHIFTWKSP" $ windows $ onScreen (liftM2 (.) S.greedyView S.shift wk) FocusNew scr
     ifEvt "XMONAD_KILLWKSP" $ do
         empty <- isEmpty wk
         if empty
