@@ -15,7 +15,9 @@ import XMonad.Actions.SpawnOn (manageSpawn)
 
 import XMonad.Layout.Maximize (maximize)
 
-import Control.Monad (liftM2, when)
+import qualified System.Directory as Directory
+import qualified System.Posix.Signals as Signals
+import Control.Monad (liftM2, when, forM_)
 import Data.List (find, intersect)
 import Data.Maybe (isNothing)
 import Data.Monoid (All(..), mappend)
@@ -33,26 +35,33 @@ import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
 main = xmonad'
     $ docksFullscreenConfig'
-    $ customXMobar defaultXmConfig
+    -- $ customXMobar defaultXmConfig
     $ maximizeConfig'
     $ DTS.dynamicTopicsConfig Cfg.topicConfig
     $ pagerHints
     $ desktopConfig {
           modMask = mod4Mask
+        , normalBorderColor = "#000000"
+        , focusedBorderColor = "#004080"
+        , mouseBindings = Cfg.mouseMappings
+        , keys = Cfg.keyMappings
         , terminal = Cfg.terminalCmd
-        , startupHook = spawn "killall unclutter; unclutter" >> gnomeRegister
         , layoutHook = Cfg.layout
+
+        , startupHook = do
+            gnomeRegister
+            spawn "killall unclutter; unclutter"
+            ws <- gets windowset
+            forM_ (S.screens ws) (spawnTaffybar . S.screen)
+
         , manageHook = composeAll
             [ manageManageNext
             , manageSpawn
             , placeHook simpleSmart
             , manageHook desktopConfig
             , manageHook' ]
+
         , handleEventHook = handleEventHook desktopConfig `mappend` eventHook
-        , normalBorderColor = "#000000"
-        , focusedBorderColor = "#004080"
-        , mouseBindings = Cfg.mouseMappings
-        , keys = Cfg.keyMappings
     }
 
 
@@ -62,6 +71,24 @@ wrapLayout conf@XConfig{layoutHook = a} = conf{layoutHook = Layout a}
 maximizeConfig' conf@XConfig{layoutHook = Layout a} = conf {layoutHook = Layout $ maximize a}
 docksFullscreenConfig' conf@XConfig{layoutHook = Layout a} = wrapLayout $ docksFullscreenConfig conf{layoutHook = a}
 
+
+spawnTaffybar :: ScreenId -> X ()
+spawnTaffybar sid = do
+    let i = case show sid of
+            'S':' ':i -> i
+            _         -> "0"
+    let dir = "/tmp/taffybar"
+    let pidFile = dir++"/"++i++".pid"
+
+    io $ do
+        Directory.createDirectoryIfMissing True dir
+        pidexists <- Directory.doesFileExist pidFile
+        when pidexists $ do
+            pid <- readFile pidFile
+            catchIO $ Signals.signalProcess Signals.sigTERM (read pid)
+
+    spawn $ "TAFFY_SCREEN="++i++" taffybar 2>> /tmp/taffybar/"++i++".log"
+            ++" & echo $! > "++pidFile
 
 
 manageHook' = composeAll $
