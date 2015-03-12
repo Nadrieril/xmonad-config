@@ -25,7 +25,6 @@ import Data.Maybe (isNothing)
 import Data.Monoid (All(..))
 ------------------------------------------------------
 -- Custom libs
-import XMonad.Util.XMobar
 import XMonad.Hooks.DocksFullscreen (docksFullscreenConfig)
 import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageManageNext)
