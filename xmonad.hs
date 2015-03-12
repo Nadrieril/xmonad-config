@@ -108,8 +108,8 @@ eventHook ClientMessageEvent { ev_message_type = mt, ev_data = dt } = do
     let open_workspaces = map S.tag (S.workspaces ws)
     let workspaces = all_workspaces `intersect` open_workspaces  -- keep order
     let n = fromIntegral (head dt)
-    let wk = workspaces !! (n `div` 10) -- arbitrary limit to 10 screens
-    let scr = S $ n `mod` 10
+    let wk = workspaces !! (n `mod` 100) -- arbitrary limit to 100 workspaces
+    let scr = S $ n `div` 100
 
     -- ifEvt "XMONAD_NEXTWKSP" $ onScreen' nextHiddenWS FocusNew scr
     -- ifEvt "XMONAD_PREVWKSP" $ onScreen' prevHiddenWS FocusNew scr
