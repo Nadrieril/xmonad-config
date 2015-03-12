@@ -9,6 +9,7 @@ import System.Taffybar.Hooks.PagerHints (pagerHints)
 
 import XMonad.Hooks.ManageHelpers (doCenterFloat)
 import XMonad.Hooks.Place (placeHook, simpleSmart)
+import XMonad.Hooks.ManageDocks (docksEventHook)
 
 import XMonad.Actions.OnScreen (onScreen, onScreen', Focus(FocusNew))
 import XMonad.Actions.SpawnOn (manageSpawn)
@@ -20,7 +21,7 @@ import qualified System.Posix.Signals as Signals
 import Control.Monad (liftM2, when, forM_)
 import Data.List (find, intersect)
 import Data.Maybe (isNothing)
-import Data.Monoid (All(..), mappend)
+import Data.Monoid (All(..))
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Util.XMobar
@@ -61,7 +62,7 @@ main = xmonad'
             , manageHook desktopConfig
             , manageHook' ]
 
-        , handleEventHook = handleEventHook desktopConfig `mappend` eventHook
+        , handleEventHook = handleEventHook desktopConfig <+> docksEventHook <+> eventHook
     }
 
 
