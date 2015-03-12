@@ -18,6 +18,7 @@ import XMonad.Layout.Maximize (maximize)
 
 import qualified System.Directory as Directory
 import qualified System.Posix.Signals as Signals
+import System.Environment.XDG.BaseDir (getUserConfigDir)
 import Control.Monad (liftM2, when, forM_)
 import Data.List (find, intersect)
 import Data.Maybe (isNothing)
@@ -80,6 +81,7 @@ spawnTaffybar sid = do
             _         -> "0"
     let dir = "/tmp/taffybar"
     let pidFile = dir++"/"++i++".pid"
+    taffy_dir <- io $ getUserConfigDir "taffybar"
 
     io $ do
         Directory.createDirectoryIfMissing True dir
@@ -88,7 +90,7 @@ spawnTaffybar sid = do
             pid <- readFile pidFile
             catchIO $ Signals.signalProcess Signals.sigTERM (read pid)
 
-    spawn $ "TAFFY_SCREEN="++i++" taffybar 2>> /tmp/taffybar/"++i++".log"
+    spawn $ "cd "++taffy_dir++"; TAFFY_SCREEN="++i++" taffybar 2> /tmp/taffybar/"++i++".log"
             ++" & echo $! > "++pidFile
 
 
