@@ -104,9 +104,9 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         , ("<XF86AudioRaiseVolume>", void $ raiseVolume 5)
         , ("<XF86AudioLowerVolume>", void $ lowerVolume 5)
         , ("<XF86AudioPlay>", spawn "rhythmbox-client --play-pause")
-        , ("<XF86AudioStop>", spawn $
-                "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
-                "notify-send \"$(getsong %tt)\" \"by $(getsong %ta) from $(getsong %at)\"")
+        -- , ("<XF86AudioStop>", spawn $
+        --         "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
+        --         "notify-send \"$(getsong %tt)\" \"by $(getsong %ta) from $(getsong %at)\"")
         , ("<XF86AudioPrev>", spawn "rhythmbox-client --previous")
         , ("<XF86AudioNext>", spawn "rhythmbox-client --next")
 
