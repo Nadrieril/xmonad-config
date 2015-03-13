@@ -18,6 +18,7 @@ import XMonad.Layout.Maximize (maximize)
 
 import qualified System.Directory as Directory
 import qualified System.Posix.Signals as Signals
+import qualified System.FilePath.Posix as PosixPath
 import System.Environment.XDG.BaseDir (getUserConfigDir)
 import Control.Monad (liftM2, when, forM_)
 import Data.List (find, intersect)
@@ -34,6 +35,9 @@ import qualified Config.Common as Cfg (terminalCmd)
 import qualified Config.Topics as Cfg (topicConfig, layout)
 import qualified Config.Mappings as Cfg (keyMappings, mouseMappings)
 ------------------------------------------------------
+infix 2 ?
+(?) = flip
+
 main = xmonad'
     $ docksFullscreenConfig'
     $ maximizeConfig'
@@ -50,9 +54,8 @@ main = xmonad'
 
         , startupHook = do
             gnomeRegister
-            spawn "killall unclutter; unclutter"
-            ws <- gets windowset
-            forM_ (S.screens ws) (spawnTaffybar . S.screen)
+            -- spawn "killall unclutter; unclutter"
+            spawnTaffybars
 
         , manageHook = composeAll
             [ manageManageNext
@@ -71,23 +74,31 @@ wrapLayout conf@XConfig{layoutHook = a} = conf{layoutHook = Layout a}
 maximizeConfig' conf@XConfig{layoutHook = Layout a} = conf {layoutHook = Layout $ maximize a}
 docksFullscreenConfig' conf@XConfig{layoutHook = Layout a} = wrapLayout $ docksFullscreenConfig conf{layoutHook = a}
 
+spawnTaffybars :: X ()
+spawnTaffybars = do
+    let dir = "/tmp/taffybar"
+    io $ do
+        Directory.createDirectoryIfMissing True dir
+        files <- Directory.getDirectoryContents dir
+        forM_ files $ \f -> do
+            let file = dir PosixPath.</> f
+            when (PosixPath.takeExtension f == ".pid") $ do
+                pid <- readFile file
+                catchIO $ Signals.signalProcess Signals.sigTERM (read pid)
+            Directory.doesFileExist file >>= when ?
+                Directory.removeFile file
 
-spawnTaffybar :: ScreenId -> X ()
-spawnTaffybar sid = do
+    ws <- gets windowset
+    forM_ (S.screens ws) (spawnTaffybar dir . S.screen)
+
+spawnTaffybar :: FilePath -> ScreenId -> X ()
+spawnTaffybar dir sid = do
     let i = case show sid of
             'S':' ':i -> i
             _         -> "0"
-    let dir = "/tmp/taffybar"
+
     let pidFile = dir++"/"++i++".pid"
     taffy_dir <- io $ getUserConfigDir "taffybar"
-
-    io $ do
-        Directory.createDirectoryIfMissing True dir
-        pidexists <- Directory.doesFileExist pidFile
-        when pidexists $ do
-            pid <- readFile pidFile
-            catchIO $ Signals.signalProcess Signals.sigTERM (read pid)
-
     spawn $ "cd "++taffy_dir++"; TAFFY_SCREEN="++i++" taffybar 2> /tmp/taffybar/"++i++".log"
             ++" & echo $! > "++pidFile
 
