@@ -128,7 +128,7 @@ topicConfig = fromList $
             ("dev/"++w, t {
                   topicDir = "$HOME/projects/" ++ dir
                 , topicAction = \wk -> do
-                    runOnByClass ("atom ~/projects/" ++ dir) classes wk
+                    runOnByClass ("cd -P ~/projects/" ++ dir ++ "; atom") classes wk
                     action wk
             })
             where classes = ["Atom"]
