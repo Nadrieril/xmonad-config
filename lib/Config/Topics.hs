@@ -39,7 +39,8 @@ topicConfig = fromList $
         topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
     , ("irc", topic {
-        topicAction = flip spawnOn "quasselclient"
+        topicAction = flip spawnOn "quasselclient",
+        topicLayout = Just $ Layout $ mirrortiled ||| tiled ||| full
         -- topicWindows = queryFromClasses ["quasselclient"]
         --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
         --     <||> isInProperty "WM_COMMAND" "quasselclient"
@@ -137,6 +138,7 @@ topicConfig = fromList $
 
 full = noBorders simpleTabbed
 tiled = smartBorders (Tall 1 (3/100) (1/2))
+mirrortiled = smartBorders (Mirror $ Tall 1 (3/100) (1/2))
 topbar = smartBorders (reflectVert $ Mirror $ Tall 1 (3/100) (93/100))
 doubletiled = smartBorders (Tall 2 (3/100) (1/2))
 -- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
