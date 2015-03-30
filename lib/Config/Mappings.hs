@@ -34,6 +34,7 @@ keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys)
 
 keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 
+
 keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
         , ("M-S-q", spawn "gnome-session-quit")
         , ("M-S-l", spawn "gnome-screensaver-command -l")
@@ -43,6 +44,9 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         , ("M-C-<Tab>", nextScreen >> warpToWindow 0.9 0.9)
         , ("M-C-S-<Tab>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
         , ("M-M1-<Tab>", swapScreens)
+        , ("M-<Two_Superior>", nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-S-<Two_Superior>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
+        , ("M-M1-<Two_Superior>", swapScreens)
 
 
         -- Workspace navigation
