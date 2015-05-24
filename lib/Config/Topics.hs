@@ -11,6 +11,7 @@ import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.Reflect (reflectVert)
 -- import XMonad.Layout.Maximize (maximize)
+import XMonad.Layout.Grid
 
 import Control.Applicative ((<$>))
 ------------------------------------------------------
@@ -20,6 +21,17 @@ import XMonad.Hooks.ManageNext (queryFromClasses, nextToWorkspaceByClass)
 import qualified XMonad.Util.Terminal as Terminal
 import Config.Common
 ------------------------------------------------------
+full = noBorders simpleTabbed
+tiled = smartBorders (Tall 1 (3/100) (1/2))
+mirrortiled = smartBorders (Mirror $ Tall 1 (3/100) (1/2))
+topbar = smartBorders (reflectVert $ Mirror $ Tall 1 (3/100) (93/100))
+doubletiled = smartBorders (Tall 2 (3/100) (1/2))
+-- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
+grid = smartBorders Grid
+
+layout = full ||| tiled
+
+
 topic = defaultTopic
 devTopic = topic {
           topicLayout = Just $ Layout $ topbar ||| tiled ||| full
@@ -29,7 +41,7 @@ devTopic = topic {
     where isAtom = queryFromClasses ["Atom"]
 termTopic = topic {
     topicAction = const spawnLocalShell,
-    topicLayout = Just $ Layout $ doubletiled ||| full ||| tiled
+    topicLayout = Just $ Layout $ doubletiled ||| full ||| tiled ||| mirrortiled ||| grid
 }
 
 
@@ -133,17 +145,6 @@ topicConfig = fromList $
                     action wk
             })
             where classes = ["Atom"]
-
-
-
-full = noBorders simpleTabbed
-tiled = smartBorders (Tall 1 (3/100) (1/2))
-mirrortiled = smartBorders (Mirror $ Tall 1 (3/100) (1/2))
-topbar = smartBorders (reflectVert $ Mirror $ Tall 1 (3/100) (93/100))
-doubletiled = smartBorders (Tall 2 (3/100) (1/2))
--- accordion = smartBorders (Mirror (Tall 0 (3/100) (1/2)))
-
-layout = full ||| tiled
 
 
 avoidMaster :: W.StackSet i l a s sd -> W.StackSet i l a s sd
