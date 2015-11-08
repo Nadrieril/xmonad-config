@@ -33,7 +33,7 @@ keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys)
 keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 
 
-keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
+keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
         , ("M-S-q", spawn "xfce4-session-logout")
         , ("M-S-l", spawn "xflock4")
 
