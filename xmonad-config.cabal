@@ -25,6 +25,5 @@ executable xmonad
 
         , xmonad
         , xmonad-contrib
-        , xmonad-extras
 
     ghc-options: -Wall -fno-warn-missing-signatures -fno-warn-name-shadowing

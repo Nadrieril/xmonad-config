@@ -8,7 +8,6 @@ import XMonad.Util.EZConfig (mkKeymap)
 
 import XMonad.Layout.Maximize (maximizeRestore)
 
-import XMonad.Actions.Volume (lowerVolume, raiseVolume, toggleMute)
 import XMonad.Actions.CycleWS (nextScreen, shiftNextScreen, toggleWS)
 -- import XMonad.Actions.CycleRecentWS (cycleRecentWS)
 import XMonad.Actions.Warp (warpToWindow)
@@ -103,9 +102,6 @@ keys' = [ ("M-q", spawn "if type xmonad; then xmonad --recompile && xmonad --res
         , ("<XF86Calculator>", maximizeNext >> spawnLocalTerminal "ghci")
 
         -- Media
-        , ("<XF86AudioMute>", void toggleMute)
-        , ("<XF86AudioRaiseVolume>", void $ raiseVolume 5)
-        , ("<XF86AudioLowerVolume>", void $ lowerVolume 5)
         , ("<XF86AudioPlay>", spawn "rhythmbox-client --play-pause")
         -- , ("<XF86AudioStop>", spawn $
         --         "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
