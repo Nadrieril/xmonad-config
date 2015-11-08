@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 import XMonad
 import XMonad.Hooks.DynamicLog
 
