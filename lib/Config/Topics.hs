@@ -17,7 +17,7 @@ import XMonad.Hooks.ManageNext (queryFromClasses, nextToWorkspaceByClass)
 import qualified XMonad.Util.Terminal as Terminal
 import Config.Common
 ------------------------------------------------------
-full = noBorders simpleTabbed
+full = noBorders Full
 tiled = smartBorders (Tall 1 (3/100) (1/2))
 mirrortiled = smartBorders (Mirror $ Tall 1 (3/100) (1/2))
 topbar = smartBorders (reflectVert $ Mirror $ Tall 1 (3/100) (93/100))

@@ -20,10 +20,11 @@ executable xmonad
         , directory
         , unix
         , mtl
+        , dbus
+        , utf8-string
 
         , xmonad
         , xmonad-contrib
         , xmonad-extras
-        , taffybar
 
     ghc-options: -Wall -fno-warn-missing-signatures -fno-warn-name-shadowing
