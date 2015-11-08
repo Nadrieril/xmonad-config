@@ -30,9 +30,9 @@ import XMonad.Layout.PerWorkspace (onWorkspace)
 
 import qualified Data.Map as M
 import qualified Safe
-import Control.Monad (liftM, liftM2, unless, forM, forM_)
+import Control.Monad (liftM2, unless, forM, forM_)
 import Data.List (find, partition)
-import Data.Maybe (isJust, fromMaybe, fromJust, catMaybes)
+import Data.Maybe (isJust, fromMaybe, fromJust)
 import Data.Monoid (Endo(..))
 import Control.Arrow (second)
 ------------------------------------------------------

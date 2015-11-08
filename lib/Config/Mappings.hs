@@ -21,7 +21,6 @@ import XMonad.Prompt.Man (manPrompt)
 import Data.Maybe (fromJust)
 import Control.Concurrent (forkIO)
 import Control.Monad (void, (>=>))
-import Control.Applicative ((<$>))
 import qualified Data.Map
 ------------------------------------------------------
 -- Custom libs

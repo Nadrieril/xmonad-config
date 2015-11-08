@@ -8,12 +8,8 @@ import XMonad.Actions.SpawnOn (spawnOn)
 import XMonad.Hooks.ManageHelpers (isDialog)
 
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
-import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.Reflect (reflectVert)
--- import XMonad.Layout.Maximize (maximize)
 import XMonad.Layout.Grid
-
-import Control.Applicative ((<$>))
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Actions.DynamicTopicSpace (Topic(..), fromList, defaultTopic, currentTopicDir)
