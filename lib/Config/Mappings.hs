@@ -28,7 +28,13 @@ import XMonad.Hooks.ManageNext (manageNext)
 import XMonad.Util.Keys (azertyKeys, numpadKeys)
 import Config.Common
 ------------------------------------------------------
-keyMappings = flip mkKeymap keys'' <+> logMappings (azertyKeys <+> numpadKeys)
+keyMappings = flip mkKeymap keys'' <+> logMappings (screenKeys <+> azertyKeys <+> numpadKeys)
+
+screenKeys :: XConfig Layout -> Data.Map.Map (KeyMask, KeySym) (X ())
+screenKeys (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
+  [((m .|. modMask, key), screenWorkspace sc >>= flip whenJust (windows . f))
+        | (key, sc) <- zip [xK_a, xK_e, xK_r] [0..]
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 
