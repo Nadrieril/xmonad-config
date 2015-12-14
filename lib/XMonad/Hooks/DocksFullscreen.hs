@@ -1,19 +1,19 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeSynonymInstances #-}
 
-module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen) where
+module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen, ifFullscreen) where
 
 import XMonad
-import qualified XMonad.StackSet as W (focus, stack)
+import qualified XMonad.StackSet as W (focus, Workspace(..))
 
 import qualified XMonad.Layout.Fullscreen as FS
 
 import XMonad.Hooks.ManageHelpers (isFullscreen)
-import XMonad.Hooks.ManageDocks (SetStruts(..), ToggleStruts(..), calcGap)
-
-import XMonad.Layout.Gaps (Direction2D(..))
-import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
+import XMonad.Hooks.ManageDocks (avoidStruts)
 
 import qualified Data.Set as S
+import Data.Maybe (fromMaybe)
+import Control.Applicative ((<$>))
+import Control.Arrow (second)
 ------------------------------------------------------
 docksFullscreenConfig conf = conf
     { layoutHook = avoidStrutsUnlessFullscreen $ FS.fullscreenFocus $ layoutHook conf
@@ -22,30 +22,25 @@ docksFullscreenConfig conf = conf
     }
 
 
-avoidStrutsUnlessFullscreen = ModifiedLayout $ AvoidStrutsUnlessFullscreen $ S.fromList [U,D,L,R]
-data AvoidStrutsUnlessFullscreen a = AvoidStrutsUnlessFullscreen (S.Set Direction2D)
-     deriving (Read, Show)
-instance LayoutModifier AvoidStrutsUnlessFullscreen Window where
-    modifyLayout (AvoidStrutsUnlessFullscreen ss) w r = do
-        let maybestack = W.stack w
-        isFull <- case maybestack of
+avoidStrutsUnlessFullscreen l = ifFullscreen l (avoidStruts l)
+
+ifFullscreen :: (LayoutClass l a, LayoutClass r a) => l a -> r a -> IfFullscreen l r a
+ifFullscreen = IfFullscreen
+
+data IfFullscreen l r a = IfFullscreen (l a) (r a) deriving (Read, Show)
+instance (LayoutClass l Window, LayoutClass r Window) => LayoutClass (IfFullscreen l r) Window where
+    runLayout (W.Workspace i (IfFullscreen l r) stk) rect = do
+        isFull <- case stk of
             Just s -> runQuery isFullscreen (W.focus s)
             Nothing -> return False
 
         if isFull
-            then runLayout w r
-            else do
-                nr <- fmap ($ r) (calcGap ss)
-                runLayout w nr
+        then mapLayout (flip IfFullscreen r) <$> runLayout (W.Workspace i l stk) rect
+        else mapLayout (IfFullscreen l)      <$> runLayout (W.Workspace i r stk) rect
 
-    pureMess (AvoidStrutsUnlessFullscreen ss) m
-        | Just ToggleStruts    <- fromMessage m = Just $ AvoidStrutsUnlessFullscreen (toggleAll ss)
-        | Just (ToggleStrut s) <- fromMessage m = Just $ AvoidStrutsUnlessFullscreen (toggleOne s ss)
-        | Just (SetStruts n k) <- fromMessage m
-        , let newSS = S.fromList n `S.union` (ss S.\\ S.fromList k)
-        , newSS /= ss = Just $ AvoidStrutsUnlessFullscreen newSS
-        | otherwise = Nothing
-      where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
-                        | otherwise = S.empty
-            toggleOne x xs | x `S.member` xs = S.delete x xs
-                           | otherwise   = x `S.insert` xs
+      where mapLayout = second . fmap
+
+    handleMessage (IfFullscreen l r) m = do
+      newl <- fromMaybe l <$> handleMessage l m
+      newr <- fromMaybe r <$> handleMessage r m
+      return $ Just $ IfFullscreen newl newr
