@@ -64,7 +64,7 @@ manageHook' = composeAll $
 
     where
         _floating  = ["Xmessage","Nm-connection-editor"]
-        _ignored = ["desktop","desktop_window","notify-osd","stalonetray","trayer"]
+        _ignored = ["desktop", "desktop_window", "notify-osd", "xfce4-notifyd", "Xfce4-notifyd", "stalonetray", "trayer"]
 
 prettyPrinter :: LogApplet.AppletPipe -> PP
 prettyPrinter applet = defaultPP

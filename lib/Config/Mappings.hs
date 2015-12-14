@@ -101,21 +101,10 @@ keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
         , ("M-n", spawnFilemanager)
         , ("<XF86Calculator>", maximizeNext >> spawnLocalTerminal "ghci")
 
-        -- Media
-        , ("<XF86AudioPlay>", spawn "rhythmbox-client --play-pause")
-        -- , ("<XF86AudioStop>", spawn $
-        --         "getsong(){ rhythmbox-client --print-playing-format=$1;};" ++
-        --         "notify-send \"$(getsong %tt)\" \"by $(getsong %ta) from $(getsong %at)\"")
-        , ("<XF86AudioPrev>", spawn "rhythmbox-client --previous")
-        , ("<XF86AudioNext>", spawn "rhythmbox-client --next")
-
-        , ("<XF86KbdBrightnessDown>", spawn "echo 0 | sudo tee /sys/class/leds/asus::kbd_backlight/brightness")
-        , ("<XF86KbdBrightnessUp>", spawn "cat /sys/class/leds/asus::kbd_backlight/max_brightness | sudo tee /sys/class/leds/asus::kbd_backlight/brightness")
-
         -- Prompts
         , ("M-s", sshPrompt defaultXPConfig)
-        , ("M-p", spawn "exec $(yeganesh -x)")
-        , ("M-x", spawn "exec $(yeganesh -x)")
+        -- , ("M-p", spawn "exec $(yeganesh -x)")
+        -- , ("M-x", spawn "exec $(yeganesh -x)")
         , ("M-f m", maximizeNext >> manPrompt defaultXPConfig)
         ] ++ [("M-f "++k, Search.promptSearchBrowser defaultXPConfig "google-chrome" f) | (k,f) <- searchList]
           ++ [("M-S-f " ++ k, Search.selectSearchBrowser "google-chrome" f) | (k,f) <- searchList]

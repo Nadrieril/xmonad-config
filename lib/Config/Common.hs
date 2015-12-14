@@ -29,7 +29,7 @@ spawnLocalShellCmdOn wk c = do
     spawnLocalShellCmd c
 
 spawnFilemanager = DTS.currentTopicDir >>= spawnFilemanagerIn
-spawnFilemanagerIn dir = spawn $ "nautilus " ++ dir
+spawnFilemanagerIn dir = spawn $ "thunar " ++ dir
 
 
 hiddenWsBy = findWorkspace getSortByIndex Next HiddenWS
