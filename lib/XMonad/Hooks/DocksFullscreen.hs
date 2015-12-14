@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, TypeSynonymInstances #-}
 
-module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen, ifFullscreen) where
+module XMonad.Hooks.DocksFullscreen (docksFullscreenConfig, avoidStrutsUnlessFullscreen, ifFullscreen, noBordersIfFullscreen) where
 
 import XMonad
 import qualified XMonad.StackSet as W (focus, Workspace(..))
@@ -9,6 +9,7 @@ import qualified XMonad.Layout.Fullscreen as FS
 
 import XMonad.Hooks.ManageHelpers (isFullscreen)
 import XMonad.Hooks.ManageDocks (avoidStruts)
+import XMonad.Layout.NoBorders (noBorders)
 
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe)
@@ -23,6 +24,7 @@ docksFullscreenConfig conf = conf
 
 
 avoidStrutsUnlessFullscreen l = ifFullscreen l (avoidStruts l)
+noBordersIfFullscreen l = ifFullscreen (noBorders l) l
 
 ifFullscreen :: (LayoutClass l a, LayoutClass r a) => l a -> r a -> IfFullscreen l r a
 ifFullscreen = IfFullscreen
