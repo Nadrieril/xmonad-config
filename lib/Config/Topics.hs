@@ -10,6 +10,7 @@ import XMonad.Hooks.ManageHelpers (isDialog)
 import XMonad.Layout.NoBorders (smartBorders, noBorders)
 import XMonad.Layout.Reflect (reflectVert)
 import XMonad.Layout.Grid
+import XMonad.Layout.MouseResizableTile
 ------------------------------------------------------
 -- Custom libs
 import XMonad.Actions.DynamicTopicSpace (Topic(..), fromList, defaultTopic, currentTopicDir)
@@ -42,7 +43,7 @@ termTopic = topic {
 
 topicConfig = fromList $
     [ ("web", topic {
-        topicAction = flip spawnOn "google-chrome",
+        topicAction = flip spawnOn "firefox-beta",
         topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
     , ("irc", topic {
@@ -52,63 +53,39 @@ topicConfig = fromList $
         --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
         --     <||> isInProperty "WM_COMMAND" "quasselclient"
     })
+    , ("scratch", termTopic)
     , ("game", topic)
     , ("video", topic {
         topicDir = "$HOME/Videos",
         topicAction = const spawnFilemanager,
-        topicWindows = queryFromClasses ["Vlc"]
+        topicWindows = queryFromClasses ["Vlc"],
+        topicLayout = Just $ Layout $ tiled ||| full
+    })
+    , ("downloads", topic {
+        topicDir = "$HOME/Downloads",
+        topicWindows = queryFromClasses ["Filezilla", "Deluge"]
+    })
+    , ("security", topic {
+        topicAction = flip spawnOn "keepass",
+        topicWindows = queryFromClasses ["keepass2", "KeePass2"]
+    })
+    , ("gimp", topic {
+        topicAction = flip spawnOn "gimp",
+        topicWindows = queryFromClasses ["gimp-2.8", "Gimp-2.8"],
+        topicLayout = Just $ Layout $ (mouseResizableTile {nmaster=3, isMirrored=True}) ||| full
     })
     ] ++
 
-    [ ("dev", topic {
-        topicDir = "$HOME/projects"
-    })
-    , ("dev/java", topic {
-        topicDir = "$HOME/projects/java",
-        topicAction = flip spawnOn "eclipse",
-        topicWindows = queryFromClasses ["Eclipse"]
+    [ ("wip", topic {
+        topicDir = "$HOME/wip"
     })
     ] ++ map projectTopic
         [ ("xm", topic {
             topicDir = "xmonad",
             topicLayout = Just $ Layout $ full ||| topbar ||| tiled
         })
-        , ("taffy", topic {
-            topicDir = "taffybar",
-            topicLayout = Just $ Layout $ full ||| topbar ||| tiled
-        })
-        , ("bars", devTopic {
-            topicDir = "bars",
-            topicAction = const spawnLocalShell
-        })
-        , ("b-a", devTopic {
-            topicDir = "bars-angular",
-            topicAction = \wk -> do
-                nextToWorkspaceByClass (Terminal.terminalClasses terminal) wk
-                spawnLocalShellCmd "grunt serve"
-        })
-        , ("b-d", devTopic {
-            topicDir = "bars-django",
-            topicAction = const $ do
-                spawnLocalShellCmd "python manage.py runserver_plus"
-                -- spawnLocalTerminal "ssh -t srv@nadrieril 'cd /srv/bars/bars-django; $SHELL'"
-                spawnLocalShell
-        })
-        , ("psc", devTopic {
-            topicDir = "PSC"
-        })
         , ("cv", topic {
-            topicDir = "CV",
-            topicAction = const $ do
-                dir <- currentTopicDir
-                spawn $ "xdg-open " ++ dir ++ "/CV.pdf"
-        })
-        , ("24h", devTopic {
-            topicDir = "24hnatation",
-            topicAction = const $ do
-                spawnLocalShellCmd "cd server && python manage.py runserver_plus"
-                spawnLocalShellCmd "cd client && grunt serve"
-                spawnLocalShell
+            topicDir = "cv"
         })
         ] ++
 
@@ -116,16 +93,12 @@ topicConfig = fromList $
         topicAction = flip spawnOn "grsync"
     })
     , ("mail", topic {
-        topicAction = flip spawnOn "icedove"
-    })
-    , ("git", topic {
-        topicAction = flip spawnOn "smartgithg",
-        topicWindows = queryFromClasses ["SmartGit/Hg"]
+        topicAction = flip spawnOn "thunderbird"
     })
     , ("music", topic {
         topicDir = "$HOME/Music",
-        topicAction = flip spawnOn "rhythmbox",
-        topicWindows = queryFromClasses ["Rhythmbox", "ario"]
+        topicAction = flip spawnOn "amarok",
+        topicWindows = queryFromClasses ["Amarok"]
     })
     -- , ("term", termTopic)
     ] ++
@@ -133,10 +106,10 @@ topicConfig = fromList $
 
     where
         projectTopic (w, t@Topic{topicDir = dir, topicAction = action}) =
-            ("dev/"++w, t {
-                  topicDir = "$HOME/projects/" ++ dir
+            ("wip/"++w, t {
+                  topicDir = "$HOME/wip/" ++ dir
                 , topicAction = \wk -> do
-                    runOnByClass ("cd -P ~/projects/" ++ dir ++ "; atom .") classes wk
+                    runOnByClass ("cd -P ~/wip/" ++ dir ++ "; atom .") classes wk
                     action wk
             })
             where classes = ["Atom"]

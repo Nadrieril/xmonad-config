@@ -13,7 +13,7 @@ data Terminal = Terminal {
 
 gnomeTerminal = Terminal {
         terminalCmd = "gnome-terminal.wrapper",
-        terminalClasses = ["Gnome-Terminal"],
+        terminalClasses = ["gnome-terminal-server", "Gnome-terminal", "Gnome-Terminal"],
         spawnTerminal = spawnTerminal'
     }
     where spawnTerminal' dir cmd i = spawn $ execWriter $ do
