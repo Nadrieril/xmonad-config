@@ -1,0 +1,9 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- X11-xft-0.3.1
+- text-1.2.2.0
+- xmonad-contrib-0.12
+resolver: lts-5.0
