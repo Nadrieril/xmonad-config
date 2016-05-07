@@ -12,6 +12,14 @@ executable xmonad
         , XMonad.Actions.DynamicTopicSpace
         , XMonad.Hooks.DocksFullscreen
         , XMonad.Hooks.ManageNext
+        , Config.Common
+        , Config.Mappings
+        , XMonad.Actions.XMonadDisplay
+        , XMonad.Hooks.LogApplet
+        , XMonad.Layout.Maximize
+        , XMonad.Util.EZConfig
+        , XMonad.Util.Keys
+        , XMonad.Util.Terminal
 
     build-depends:
           base

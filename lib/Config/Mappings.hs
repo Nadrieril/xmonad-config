@@ -8,7 +8,7 @@ import XMonad.Util.EZConfig (mkKeymap)
 
 import XMonad.Layout.Maximize (maximizeRestore)
 
-import XMonad.Actions.CycleWS (nextScreen, shiftNextScreen, toggleWS)
+import XMonad.Actions.CycleWS (nextScreen, shiftNextScreen, prevScreen, shiftPrevScreen, swapNextScreen, swapPrevScreen, toggleWS)
 -- import XMonad.Actions.CycleRecentWS (cycleRecentWS)
 import XMonad.Actions.Warp (warpToWindow)
 import qualified XMonad.Actions.Search as Search
@@ -17,7 +17,9 @@ import XMonad.Prompt (defaultXPConfig)
 import XMonad.Prompt.Ssh (sshPrompt)
 import XMonad.Prompt.Man (manPrompt)
 
+import GHC.Exts (sortWith)
 import Data.Maybe (fromJust)
+import Data.List (elemIndex)
 import Control.Concurrent (forkIO)
 import Control.Monad (void, (>=>))
 import qualified Data.Map
@@ -27,11 +29,12 @@ import qualified XMonad.Actions.DynamicTopicSpace as DTS
 import XMonad.Hooks.ManageNext (manageNext)
 import XMonad.Util.Keys (azertyKeys, numpadKeys)
 import Config.Common
+import XMonad.Actions.XMonadDisplay(myGridSelect)
 ------------------------------------------------------
 keyMappings = flip mkKeymap keys'' <+> logMappings (screenKeys <+> azertyKeys <+> numpadKeys)
 
 screenKeys :: XConfig Layout -> Data.Map.Map (KeyMask, KeySym) (X ())
-screenKeys (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
+screenKeys XConfig {XMonad.modMask = modMask} = Data.Map.fromList
   [((m .|. modMask, key), screenWorkspace sc >>= flip whenJust (windows . f))
         | (key, sc) <- zip [xK_a, xK_e, xK_r] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
@@ -39,7 +42,7 @@ screenKeys (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList
 keys'' = map (\(m, x) -> (m, logMapping m >> x)) keys'
 
 
-keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
+keys' = [ ("M-q", spawn "xmonad --restart")
         , ("M-S-q", spawn "xfce4-session-logout")
         , ("M-S-l", spawn "xflock4")
 
@@ -51,6 +54,17 @@ keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
         , ("M-<Two_Superior>", nextScreen >> warpToWindow 0.9 0.9)
         , ("M-S-<Two_Superior>", shiftNextScreen >> nextScreen >> warpToWindow 0.9 0.9)
         , ("M-M1-<Two_Superior>", swapScreens)
+
+        , ("M-<R>", nextScreen >> warpToWindow 0.7 0.7)
+        , ("M-<L>", prevScreen >> warpToWindow 0.7 0.7)
+        , ("M-S-<R>", shiftNextScreen >> nextScreen >> warpToWindow 0.7 0.7)
+        -- , ("M-S-<R>", shiftNextScreen)
+        , ("M-S-<L>", shiftPrevScreen >> prevScreen >> warpToWindow 0.7 0.7)
+        -- , ("M-S-<L>", shiftPrevScreen)
+        , ("M-C-<R>", swapNextScreen >> nextScreen >> warpToWindow 0.7 0.7)
+        -- , ("M-C-<R>", swapNextScreen)
+        , ("M-C-<L>", swapPrevScreen >> prevScreen >> warpToWindow 0.7 0.7)
+        -- , ("M-C-<L>", swapPrevScreen)
 
 
         -- Workspace navigation
@@ -69,6 +83,7 @@ keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
 
         -- Topics
         , ("M-w", DTS.topicGridSelect >>= maybe (return ()) DTS.goto)
+        , ("M-v", myGridSelect)
         , ("M-M1-w", DTS.currentTopicAction)
         , ("M-S-w", do
             wk <- gets (W.currentTag . windowset)
@@ -124,7 +139,7 @@ keys' = [ ("M-q", spawn "xmonad --recompile && xmonad --restart")
                                ]
 
 
-mouseMappings (XConfig {XMonad.modMask = modMask}) = Data.Map.fromList $
+mouseMappings XConfig {XMonad.modMask = modMask} = Data.Map.fromList $
     map (\(m, x) -> (m, x >=> const (logMapping m)))
     [ ((modMask, button1), mouseMoveWindow)
     , ((modMask, button2), killWindow)
@@ -146,6 +161,14 @@ swapScreens = do
     case visible of
         [] -> return ()
         s:_ -> windows $ W.greedyView (W.tag $ W.workspace s)
+
+-- nextScreen = do
+--     current <- gets (W.current . windowset)
+--     screens <- gets (W.screens . windowset)
+--     let sorted_screens = sortWith W.screen screens
+--     let Just cid = elemIndex (W.screen current) (fmap W.screen sorted_screens)
+--     let next = (cid + 1) `mod` length screens
+--     windows $ W.greedyView (W.tag $ W.workspace (sorted_screens !! next))
 
 maximizeNext :: X ()
 maximizeNext = manageNext (return True) $ ask >>= \w -> do

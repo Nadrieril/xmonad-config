@@ -69,7 +69,8 @@ manageHook' = composeAll $
 
     where
         _floating  = ["Xmessage","Nm-connection-editor"]
-        _ignored = ["desktop", "desktop_window", "notify-osd", "xfce4-notifyd", "Xfce4-notifyd", "stalonetray", "trayer"]
+        -- _ignored = ["desktop", "desktop_window", "notify-osd", "xfce4-notifyd", "Xfce4-notifyd", "stalonetray", "trayer"]
+        _ignored = ["notify-osd", "xfce4-notifyd", "Xfce4-notifyd", "stalonetray", "trayer"]
 
 appletlogHook :: AppletPipe -> X ()
 appletlogHook applet = do

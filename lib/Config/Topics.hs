@@ -28,7 +28,9 @@ grid = smartBorders Grid
 layout = full ||| tiled
 
 
-topic = defaultTopic
+topic = defaultTopic {
+    topicDir = "$HOME"
+}
 devTopic = topic {
           topicLayout = Just $ Layout $ topbar ||| tiled ||| full
         , topicHook = (not <$> (isDialog <||> isAtom) --> doF avoidMaster)
@@ -43,15 +45,18 @@ termTopic = topic {
 
 topicConfig = fromList $
     [ ("web", topic {
-        topicAction = flip spawnOn "firefox-beta",
-        topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
+        topicAction = flip spawnOn "firefox"
+        -- topicWindows = queryFromClasses ["Firefox","Google-chrome","Chromium","Chromium-browser"]
     })
     , ("irc", topic {
-        topicAction = flip spawnOn "quasselclient",
-        topicLayout = Just $ Layout $ mirrortiled ||| tiled ||| full
+        -- topicAction = flip spawnOn "quasselclient",
+        topicLayout = Just $ Layout $ full ||| mirrortiled ||| tiled
         -- topicWindows = queryFromClasses ["quasselclient"]
         --     <||> isInProperty "_NET_WM_NAME" "Quassel IRC"
         --     <||> isInProperty "WM_COMMAND" "quasselclient"
+    })
+    , ("wip", topic {
+        topicAction = const spawnLocalShell
     })
     , ("scratch", termTopic)
     , ("game", topic)
@@ -63,11 +68,16 @@ topicConfig = fromList $
     })
     , ("downloads", topic {
         topicDir = "$HOME/Downloads",
-        topicWindows = queryFromClasses ["Filezilla", "Deluge"]
+        topicWindows = queryFromClasses ["Filezilla", "Deluge"],
+        topicLayout = Just $ Layout $ full ||| mirrortiled ||| tiled
     })
     , ("security", topic {
         topicAction = flip spawnOn "keepass",
         topicWindows = queryFromClasses ["keepass2", "KeePass2"]
+    })
+    , ("git", topic {
+        topicAction = flip spawnOn "smartgit",
+        topicWindows = queryFromClasses ["SmartGit/Hg"]
     })
     , ("gimp", topic {
         topicAction = flip spawnOn "gimp",
@@ -76,10 +86,7 @@ topicConfig = fromList $
     })
     ] ++
 
-    [ ("wip", topic {
-        topicDir = "$HOME/wip"
-    })
-    ] ++ map projectTopic
+    map projectTopic
         [ ("xm", topic {
             topicDir = "xmonad",
             topicLayout = Just $ Layout $ full ||| topbar ||| tiled

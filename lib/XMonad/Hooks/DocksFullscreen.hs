@@ -17,7 +17,7 @@ import Control.Applicative ((<$>))
 import Control.Arrow (second)
 ------------------------------------------------------
 docksFullscreenConfig conf = conf
-    { layoutHook = avoidStrutsUnlessFullscreen $ FS.fullscreenFocus $ layoutHook conf
+    { layoutHook = nicerFullscreen $ FS.fullscreenFocus $ layoutHook conf
     , manageHook = FS.fullscreenManageHook <+> manageHook conf
     , handleEventHook = FS.fullscreenEventHook <+> handleEventHook conf
     }
@@ -25,6 +25,7 @@ docksFullscreenConfig conf = conf
 
 avoidStrutsUnlessFullscreen l = ifFullscreen l (avoidStruts l)
 noBordersIfFullscreen l = ifFullscreen (noBorders l) l
+nicerFullscreen l = ifFullscreen (noBorders l) (avoidStruts l)
 
 ifFullscreen :: (LayoutClass l a, LayoutClass r a) => l a -> r a -> IfFullscreen l r a
 ifFullscreen = IfFullscreen
@@ -37,8 +38,8 @@ instance (LayoutClass l Window, LayoutClass r Window) => LayoutClass (IfFullscre
             Nothing -> return False
 
         if isFull
-        then mapLayout (flip IfFullscreen r) <$> runLayout (W.Workspace i l stk) rect
-        else mapLayout (IfFullscreen l)      <$> runLayout (W.Workspace i r stk) rect
+            then mapLayout (flip IfFullscreen r) <$> runLayout (W.Workspace i l stk) rect
+            else mapLayout (IfFullscreen l)      <$> runLayout (W.Workspace i r stk) rect
 
       where mapLayout = second . fmap
 

@@ -25,7 +25,7 @@ import qualified XMonad.StackSet as S
 import qualified XMonad.Actions.TopicSpace as TS
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Util.Dmenu (dmenu)
-import XMonad.Actions.GridSelect (gridselect, navNSearch, buildDefaultGSConfig, GSConfig(..))
+import qualified XMonad.Actions.GridSelect as GS
 import XMonad.Layout.PerWorkspace (onWorkspace)
 
 import qualified Data.Map as M
@@ -170,15 +170,34 @@ topicPrompt = do
                 then Nothing
                 else Just selection
 
+navNSearch :: GS.TwoD a (Maybe a)
+navNSearch = GS.makeXEventhandler $ GS.shadowWithKeymap navNSearchKeyMap navNSearchDefaultHandler
+  where navNSearchKeyMap = M.fromList [
+           ((0,xK_Escape)     , GS.cancel)
+          ,((0,xK_Return)     , GS.select)
+          ,((0,xK_KP_Enter)   , GS.select)
+          ,((0,xK_Left)       , GS.move (-1,0) >> navNSearch)
+          ,((0,xK_Right)      , GS.move (1,0) >> navNSearch)
+          ,((0,xK_Down)       , GS.move (0,1) >> navNSearch)
+          ,((0,xK_Up)         , GS.move (0,-1) >> navNSearch)
+          ,((0,xK_Tab)        , GS.moveNext >> navNSearch)
+          ,((shiftMask,xK_Tab), GS.movePrev >> navNSearch)
+          ,((0,xK_BackSpace), GS.transformSearchString (\s -> if s == "" then "" else init s) >> navNSearch)
+          ]
+        -- The navigation handler ignores unknown key symbols, therefore we const
+        navNSearchDefaultHandler (_,s,_) = do
+          GS.transformSearchString (++ s)
+          navNSearch
+
 topicGridSelect :: X (Maybe WorkspaceId)
 topicGridSelect = do
-        let cfg = (buildDefaultGSConfig colorizer) { gs_navigate = navNSearch }
+        let cfg = (GS.buildDefaultGSConfig colorizer) { GS.gs_navigate = navNSearch }
         wks <- asks (workspaces . config)
-        gridselect cfg (map (\a -> (a,a)) wks)
-    where colorizer _ active =
+        GS.gridselect cfg (map (\a -> (a,a)) wks)
+    where colorizer _ active = return $
             if active
-            then return ("#B0B0B0", "#000000")
-            else return ("#808080", "#000000")
+            then ("#B0B0B0", "#000000")
+            else ("#808080", "#000000")
 
 
 ---- Internals
